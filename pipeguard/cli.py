@@ -10,6 +10,7 @@ import click
 from pipeguard import __version__
 from pipeguard.output.formatter import Formatter, OutputFormat
 from pipeguard.scanner.actionlint_runner import Finding, run_actionlint
+from pipeguard.scanner.permissions import check_permissions
 from pipeguard.scanner.secrets_flow import check_secrets_flow
 from pipeguard.scanner.sha_pinning import check_sha_pinning
 from pipeguard.scanner.supply_chain import check_supply_chain
@@ -34,6 +35,7 @@ def _scan_file(workflow: Path) -> list[Finding]:
     findings += check_sha_pinning(str(workflow))
     findings += check_secrets_flow(str(workflow))
     findings += check_supply_chain(str(workflow))
+    findings += check_permissions(str(workflow))
     return findings
 
 

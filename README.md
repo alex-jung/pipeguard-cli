@@ -94,6 +94,10 @@ Use exit code `1` to fail CI pipelines on findings.
 | `sha-pinning` | error | Action pinned to a tag or branch instead of a full commit SHA — supply-chain risk (cf. [CVE-2025-30066](https://github.com/advisories/GHSA-mrrh-fwg3-99v7)) |
 | `supply-chain` | warning | Third-party action from an unverified publisher |
 | `secrets-leak` | error | Secret value echoed or logged in a `run:` step |
+| `permissions-missing` | error | No `permissions:` block — GitHub grants write access to most scopes by default |
+| `permissions-write-all` | error | `permissions: write-all` at top-level or per-job |
+| `permissions-excessive` | warning | Sensitive scope (e.g. `secrets`, `workflows`) set to `write` |
+| `permissions-invalid` | error | Unknown permission level (not `read`, `write`, or `none`) |
 | `actionlint` | error | Syntax and type errors (requires actionlint) |
 
 ---

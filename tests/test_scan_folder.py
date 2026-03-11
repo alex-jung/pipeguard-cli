@@ -34,6 +34,8 @@ def test_scan_directory_finds_multiple_files(tmp_path):
 def test_scan_directory_clean(tmp_path):
     wf = tmp_path / "clean.yml"
     wf.write_text(
+        "on: [push]\n"
+        "permissions:\n  contents: read\n"
         "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n"
         "      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
     )
