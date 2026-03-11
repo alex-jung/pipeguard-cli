@@ -2,6 +2,11 @@
 
 <img src="assets/logo.jpg" alt="PipeGuard" width="200">
 
+[![CI](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml)
+[![PyPI Version](https://img.shields.io/pypi/v/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
+[![Downloads](https://img.shields.io/pypi/dm/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
 > Catch GitHub Actions security issues before they reach your runners.
 
 Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain risks, unpinned actions, known CVEs, and secret leaks — before you push.
