@@ -1,0 +1,23 @@
+# Fixture: workflow with multiple security issues (for testing only — mock data)
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # BAD: pinned to a tag, not a SHA (supply-chain risk)
+      - uses: actions/checkout@v3
+
+      # BAD: third-party action not pinned to SHA
+      - uses: tj-actions/changed-files@v35
+
+      # BAD: potential secret leak
+      - name: Debug token
+        run: echo ${{ secrets.GITHUB_TOKEN }}
+
+      # BAD: another unpinned third-party action
+      - uses: peter-evans/create-pull-request@v5
