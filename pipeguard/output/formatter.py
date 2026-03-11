@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from pipeguard.scanner.actionlint_runner import Finding
+    from pipeguard.scanner.base import Finding
 
 
 class OutputFormat(StrEnum):
@@ -51,7 +51,9 @@ class Formatter:
         table.add_column("Message")
 
         for f in findings:
-            sev_style = "red" if f.severity == "error" else "yellow"
+            sev_style = {"error": "red", "warning": "yellow", "info": "blue"}.get(
+                f.severity, "white"
+            )
             table.add_row(
                 f"[{sev_style}]{f.severity}[/{sev_style}]",
                 f.rule,

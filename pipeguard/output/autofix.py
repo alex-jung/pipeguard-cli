@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pipeguard.scanner.actionlint_runner import Finding
+    from pipeguard.scanner.base import Finding
 
 
 def generate_fixes(findings: list[Finding], workflow_path: str) -> str:

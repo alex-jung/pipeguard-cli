@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.actionlint_runner import Finding
+from pipeguard.scanner.base import Finding
 
 # Matches "owner/repo@ref" in `uses:` lines.
 _USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
@@ -39,7 +39,6 @@ def check_sha_pinning(workflow_path: str) -> list[Finding]:
             if _SHA_RE.match(ref):
                 continue  # already pinned
 
-            # Find the line number of this `uses:` entry.
             line_no = next(
                 (i + 1 for i, line in enumerate(lines) if uses in line),
                 0,

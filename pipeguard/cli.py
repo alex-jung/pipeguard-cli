@@ -9,11 +9,14 @@ import click
 
 from pipeguard import __version__
 from pipeguard.output.formatter import Formatter, OutputFormat
-from pipeguard.scanner.actionlint_runner import Finding, run_actionlint
-from pipeguard.scanner.permissions import check_permissions
-from pipeguard.scanner.secrets_flow import check_secrets_flow
-from pipeguard.scanner.sha_pinning import check_sha_pinning
-from pipeguard.scanner.supply_chain import check_supply_chain
+from pipeguard.scanner.base import Finding
+from pipeguard.scanner.github_actions.action_inventory import check_action_inventory
+from pipeguard.scanner.github_actions.actionlint_runner import run_actionlint
+from pipeguard.scanner.github_actions.cve_check import check_cve
+from pipeguard.scanner.github_actions.permissions import check_permissions
+from pipeguard.scanner.github_actions.secrets_flow import check_secrets_flow
+from pipeguard.scanner.github_actions.sha_pinning import check_sha_pinning
+from pipeguard.scanner.github_actions.supply_chain import check_supply_chain
 
 _WORKFLOW_GLOB = ("*.yml", "*.yaml")
 
@@ -36,6 +39,8 @@ def _scan_file(workflow: Path) -> list[Finding]:
     findings += check_secrets_flow(str(workflow))
     findings += check_supply_chain(str(workflow))
     findings += check_permissions(str(workflow))
+    findings += check_cve(str(workflow))
+    findings += check_action_inventory(str(workflow))
     return findings
 
 
@@ -73,13 +78,13 @@ def scan(path: str, output_format: str, fix: bool) -> None:
         fmt.render(findings, str(workflow))
 
     if len(workflows) > 1:
-        total = len(all_findings)
         errors = sum(1 for f in all_findings if f.severity == "error")
-        warnings = total - errors
+        warnings = sum(1 for f in all_findings if f.severity == "warning")
+        infos = sum(1 for f in all_findings if f.severity == "info")
         click.echo(
             f"\nScanned {len(workflows)} file(s) — "
-            f"{errors} error(s), {warnings} warning(s) total."
+            f"{errors} error(s), {warnings} warning(s), {infos} info(s) total."
         )
 
-    if all_findings:
+    if any(f.severity in ("error", "warning") for f in all_findings):
         sys.exit(1)

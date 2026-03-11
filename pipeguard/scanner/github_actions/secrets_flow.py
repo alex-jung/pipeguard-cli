@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.actionlint_runner import Finding
+from pipeguard.scanner.base import Finding
 
 # Patterns that suggest a secret value is being echoed or logged.
 _LEAK_PATTERNS = [
@@ -33,7 +33,6 @@ def check_secrets_flow(workflow_path: str) -> list[Finding]:
                 continue
             for pattern in _LEAK_PATTERNS:
                 if pattern.search(run_block):
-                    # Find approximate line number.
                     snippet = run_block.splitlines()[0]
                     line_no = next(
                         (i + 1 for i, line in enumerate(lines) if snippet in line),

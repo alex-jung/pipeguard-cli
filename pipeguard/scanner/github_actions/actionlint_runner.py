@@ -4,18 +4,8 @@ from __future__ import annotations
 
 import json
 import subprocess
-from dataclasses import dataclass
 
-
-@dataclass
-class Finding:
-    rule: str
-    message: str
-    file: str
-    line: int
-    col: int
-    severity: str = "error"
-    fix_suggestion: str | None = None
+from pipeguard.scanner.base import Finding
 
 
 def run_actionlint(workflow_path: str) -> list[Finding]:
@@ -31,7 +21,6 @@ def run_actionlint(workflow_path: str) -> list[Finding]:
             text=True,
         )
     except FileNotFoundError:
-        # actionlint not installed — warn but continue
         print("[pipeguard] WARNING: actionlint not found. Install it for full analysis.")
         return []
 

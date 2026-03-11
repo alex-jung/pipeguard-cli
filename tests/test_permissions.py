@@ -1,6 +1,6 @@
 """Tests for the permission analysis checker."""
 
-from pipeguard.scanner.permissions import check_permissions
+from pipeguard.scanner.github_actions.permissions import check_permissions
 
 FIXTURES = "tests/fixtures"
 
