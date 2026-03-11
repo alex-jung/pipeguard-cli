@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import TypedDict
@@ -13,45 +14,31 @@ from pipeguard.scanner.base import Finding
 _USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
+_CVE_DB_PATH = Path(__file__).parent / "cve_db.json"
+
 
 class CveRecord(TypedDict):
+    action: str
     cve_id: str
     description: str
     affected_refs: list[str]  # "all_tags" | specific tag/SHA
     advisory_url: str
 
 
-# Local CVE database — fully offline, no API calls.
-# "all_tags" means any non-SHA ref is considered affected.
-# Extend this dict as new advisories are published.
-_CVE_DB: dict[str, list[CveRecord]] = {
-    "tj-actions/changed-files": [
-        {
-            "cve_id": "CVE-2025-30066",
-            "description": (
-                "tj-actions/changed-files was compromised in a supply-chain attack. "
-                "All tag-based refs are potentially affected — pin to a known-good SHA."
-            ),
-            "affected_refs": ["all_tags"],
-            "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-30066",
-        }
-    ],
-    "reviewdog/action-setup": [
-        {
-            "cve_id": "CVE-2025-30154",
-            "description": (
-                "reviewdog/action-setup was compromised in the same supply-chain campaign "
-                "as tj-actions/changed-files. Pin to a vetted SHA."
-            ),
-            "affected_refs": ["all_tags"],
-            "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-30154",
-        }
-    ],
-}
+def _load_cve_db() -> dict[str, list[CveRecord]]:
+    """Load CVE database from the bundled JSON file, keyed by action (lowercase)."""
+    records: list[CveRecord] = json.loads(_CVE_DB_PATH.read_text())
+    db: dict[str, list[CveRecord]] = {}
+    for record in records:
+        key = record["action"].lower()
+        db.setdefault(key, []).append(record)
+    return db
 
 
 def check_cve(workflow_path: str) -> list[Finding]:
     """Return findings for actions that match known CVEs in the local database."""
+    cve_db = _load_cve_db()
+
     text = Path(workflow_path).read_text()
     data = yaml.safe_load(text)
     lines = text.splitlines()
@@ -69,7 +56,7 @@ def check_cve(workflow_path: str) -> list[Finding]:
                 continue
             action, ref = m.group("action"), m.group("ref")
 
-            for record in _CVE_DB.get(action.lower(), []):
+            for record in cve_db.get(action.lower(), []):
                 is_tag = not _SHA_RE.match(ref)
                 hit = ("all_tags" in record["affected_refs"] and is_tag) or (
                     ref in record["affected_refs"]
