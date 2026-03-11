@@ -113,14 +113,21 @@ Info-level findings (action inventory) do not affect the exit code.
 
 ## CVE database
 
-PipeGuard ships with a built-in offline CVE database. Currently tracked:
+PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new release.
 
 | CVE | Action | Description |
 |-----|--------|-------------|
 | [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066) | `tj-actions/changed-files` | Supply-chain attack — all tag-based refs affected |
 | [CVE-2025-30154](https://www.cve.org/CVERecord?id=CVE-2025-30154) | `reviewdog/action-setup` | Supply-chain attack — same campaign as CVE-2025-30066 |
+| [CVE-2023-49291](https://www.cve.org/CVERecord?id=CVE-2023-49291) | `tj-actions/branch-names` | Script injection via crafted branch name — steals secrets and abuses GITHUB_TOKEN |
 
 SHA-pinned refs are not flagged — another reason to always pin to a commit SHA.
+
+To get the latest CVEs, upgrade to the newest release:
+
+```bash
+pip install --upgrade pipeguard-cli
+```
 
 ---
 
