@@ -156,7 +156,7 @@ Info-level findings (action inventory) do not affect the exit code.
 
 ## CVE database
 
-PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new release.
+PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new weekly release.
 
 | CVE | Action | Description |
 |-----|--------|-------------|
