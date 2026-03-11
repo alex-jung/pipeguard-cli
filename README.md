@@ -196,6 +196,7 @@ repos:
         name: PipeGuard workflow scan
         entry: pipeguard scan
         language: python
+        additional_dependencies: [pipeguard-cli]
         files: \.github/workflows/.*\.ya?ml$
 ```
 
