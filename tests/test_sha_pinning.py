@@ -1,6 +1,6 @@
 """Tests for SHA pinning checker."""
 
-from pipeguard.scanner.sha_pinning import check_sha_pinning
+from pipeguard.scanner.github_actions.sha_pinning import check_sha_pinning
 
 FIXTURES = "tests/fixtures"
 

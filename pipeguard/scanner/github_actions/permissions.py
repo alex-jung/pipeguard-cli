@@ -6,12 +6,10 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.actionlint_runner import Finding
+from pipeguard.scanner.base import Finding
 
-# All scopes GitHub Actions supports and their valid permission levels.
 _VALID_LEVELS = {"read", "write", "none"}
 
-# Scopes that are almost never needed — flag write access as high severity.
 _SENSITIVE_SCOPES = {
     "actions",
     "administration",
@@ -26,7 +24,6 @@ _SENSITIVE_SCOPES = {
     "workflows",
 }
 
-# The implicit default when no `permissions:` key is present at all.
 _IMPLICIT_DEFAULT_MESSAGE = (
     "No top-level 'permissions:' key found. "
     "GitHub grants write access to most scopes by default — "
@@ -45,7 +42,6 @@ def check_permissions(workflow_path: str) -> list[Finding]:
 
     findings: list[Finding] = []
 
-    # 1. Missing top-level permissions block.
     if "permissions" not in data:
         findings.append(
             Finding(
@@ -58,11 +54,10 @@ def check_permissions(workflow_path: str) -> list[Finding]:
                 fix_suggestion="Add 'permissions: read-all' at the top level, then grant only what each job needs.",  # noqa: E501
             )
         )
-        return findings  # further checks need the block to exist
+        return findings
 
     top_perms = data["permissions"]
 
-    # 2. permissions: write-all
     if top_perms == "write-all":
         findings.append(
             Finding(
@@ -77,11 +72,9 @@ def check_permissions(workflow_path: str) -> list[Finding]:
         )
         return findings
 
-    # 3. Granular top-level permissions — check each scope.
     if isinstance(top_perms, dict):
         findings += _check_scope_dict(top_perms, workflow_path, lines, context="top-level")
 
-    # 4. Per-job permissions.
     for job_id, job in (data.get("jobs") or {}).items():
         if not isinstance(job, dict):
             continue

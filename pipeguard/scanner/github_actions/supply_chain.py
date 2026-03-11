@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.actionlint_runner import Finding
+from pipeguard.scanner.base import Finding
 
 # Well-known trusted publisher prefixes (allowlist seed).
 _TRUSTED_PUBLISHERS = {"actions/", "github/", "docker/"}
