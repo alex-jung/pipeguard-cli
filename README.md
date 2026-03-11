@@ -93,7 +93,7 @@ Use exit code `1` to fail CI pipelines on findings.
 
 | Rule | Severity | Description |
 |------|----------|-------------|
-| `sha-pinning` | error | Action pinned to a tag or branch instead of a full commit SHA — supply-chain risk (cf. [CVE-2025-30066](https://github.com/advisories/GHSA-mrrh-fwg3-99v7)) |
+| `sha-pinning` | error | Action pinned to a tag or branch instead of a full commit SHA — supply-chain risk (cf. [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066)) |
 | `supply-chain` | warning | Third-party action from an unverified publisher |
 | `secrets-leak` | error | Secret value echoed or logged in a `run:` step |
 | `permissions-missing` | error | No `permissions:` block — GitHub grants write access to most scopes by default |
