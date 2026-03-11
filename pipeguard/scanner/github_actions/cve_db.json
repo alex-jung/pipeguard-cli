@@ -12,5 +12,12 @@
     "description": "reviewdog/action-setup was compromised in the same supply-chain campaign as tj-actions/changed-files. Pin to a vetted SHA.",
     "affected_refs": ["all_tags"],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-30154"
+  },
+  {
+    "action": "tj-actions/branch-names",
+    "cve_id": "CVE-2023-49291",
+    "description": "tj-actions/branch-names improperly references github.event.pull_request.head.ref and github.head_ref in a run step, allowing a specially crafted branch name to execute arbitrary code and steal secrets or abuse GITHUB_TOKEN permissions.",
+    "affected_refs": ["all_tags"],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2023-49291"
   }
 ]
