@@ -89,7 +89,7 @@ class Formatter:
 
     def _render_sarif(self, findings: list[Finding], workflow_path: str) -> None:
         results = []
-        rules: dict[str, dict] = {}
+        rules: dict[str, dict[str, object]] = {}
 
         for f in findings:
             rules[f.rule] = {

@@ -38,16 +38,16 @@ def run_actionlint(workflow_path: str) -> list[Finding]:
     if not result.stdout.strip():
         return []
 
-    raw: list[dict] = json.loads(result.stdout)
+    raw: list[dict[str, int | str]] = json.loads(result.stdout)
     findings: list[Finding] = []
     for item in raw:
         findings.append(
             Finding(
-                rule=item.get("kind", "actionlint"),
-                message=item.get("message", ""),
-                file=item.get("filepath", workflow_path),
-                line=item.get("line", 0),
-                col=item.get("column", 0),
+                rule=str(item.get("kind", "actionlint")),
+                message=str(item.get("message", "")),
+                file=str(item.get("filepath", workflow_path)),
+                line=int(item.get("line", 0)),
+                col=int(item.get("column", 0)),
                 severity="error",
             )
         )
