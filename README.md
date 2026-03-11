@@ -1,5 +1,7 @@
 # PipeGuard
 
+<img src="assets/logo.jpg" alt="PipeGuard" width="200">
+
 > Catch GitHub Actions security issues before they reach your runners.
 
 Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain risks, unpinned actions, and secret leaks — before you push.
@@ -152,7 +154,11 @@ repos:
 
 ---
 
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE).
+
 ## Status
 
-In active development. Core scanner (SHA pinning, supply-chain, secrets flow) is functional.
+In active development. Core scanner (SHA pinning, supply-chain, secrets flow, permission analysis) is functional.
 Planned: cloud sandbox testing, auto-fix PRs, IDE plugin.

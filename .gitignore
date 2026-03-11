@@ -1,5 +1,6 @@
 # Business context
 CLAUDE.private.md
+docs/private/
 
 # Secrets & Umgebung
 .env
