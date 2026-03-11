@@ -44,11 +44,11 @@ class Formatter:
             self._console.print("[green]  ✓ No issues found[/green]")
             return
 
-        table = Table(box=box.ROUNDED, show_lines=True)
-        table.add_column("Severity", style="bold", width=9)
-        table.add_column("Rule", style="cyan", width=18)
-        table.add_column("Location", width=30)
-        table.add_column("Message")
+        table = Table(box=box.ROUNDED, show_lines=True, expand=False)
+        table.add_column("Severity", style="bold", width=9, no_wrap=True)
+        table.add_column("Rule", style="cyan", width=22, no_wrap=True)
+        table.add_column("Location", width=26, no_wrap=True)
+        table.add_column("Message", max_width=60)
 
         for f in findings:
             sev_style = {"error": "red", "warning": "yellow", "info": "blue"}.get(

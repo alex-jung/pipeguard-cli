@@ -7,9 +7,34 @@
 [![Downloads](https://img.shields.io/pypi/dm/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
+![Demo](assets/demo.gif)
+
 > Catch GitHub Actions security issues before they reach your runners.
 
 Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain risks, unpinned actions, known CVEs, and secret leaks — before you push.
+
+---
+
+## How PipeGuard compares
+
+| Feature | PipeGuard | actionlint | StepSecurity | act |
+|---------|:---------:|:----------:|:------------:|:---:|
+| SHA-pinning check | ✅ | ❌ | ✅ | ❌ |
+| CVE database (offline) | ✅ | ❌ | ✅ (online) | ❌ |
+| Permissions analysis | ✅ | ⚠️ syntax only | ✅ | ❌ |
+| Secrets-leak detection | ✅ | ❌ | ✅ (runtime) | ❌ |
+| Supply-chain audit | ✅ | ❌ | ✅ | ❌ |
+| Syntax / type checks | ✅ via actionlint | ✅ | ❌ | ❌ |
+| Run workflows locally | ❌ | ❌ | ❌ | ✅ |
+| Runtime hardening | ❌ | ❌ | ✅ | ❌ |
+| Pre-commit hook | ✅ | ✅ | ❌ | ❌ |
+| SARIF output | ✅ | ✅ | ❌ | ❌ |
+| No API key required | ✅ | ✅ | ❌ | ✅ |
+| Fully offline | ✅ | ✅ | ❌ | ⚠️ needs images |
+| Open source | ✅ | ✅ | ✅ | ✅ |
+| Free | ✅ core | ✅ | ⚠️ freemium | ✅ |
+
+PipeGuard fills the gap between authoring and execution: static security analysis, offline, before you push, without any external service.
 
 ---
 
