@@ -388,8 +388,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pipeguard"
-version = "0.1.0"
+name = "pipeguard-cli"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

@@ -13,7 +13,7 @@ Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain r
 **Prerequisites:** Python 3.11+
 
 ```bash
-pip install pipeguard
+pip install pipeguard-cli
 ```
 
 **Install actionlint** (required for syntax checks, optional for other checks):
@@ -112,7 +112,7 @@ Add pipeguard as a pre-push check or CI step:
 # .github/workflows/pipeguard.yml
 - name: Scan workflows
   run: |
-    pip install pipeguard
+    pip install pipeguard-cli
     pipeguard scan .github/workflows/
 ```
 

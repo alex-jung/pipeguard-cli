@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pipeguard"
-version = "0.1.0"
+name = "pipeguard-cli"
+dynamic = ["version"]
 description = "Pre-commit security scanner for GitHub Actions workflows"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,6 +31,7 @@ pipeguard = "pipeguard.cli:main"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = ["pipeguard/_version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
@@ -38,6 +39,12 @@ select = ["E", "F", "I", "UP"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pipeguard/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

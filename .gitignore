@@ -8,6 +8,7 @@ docs/private/
 .env.*.local
 
 # Python
+pipeguard/_version.py
 __pycache__/
 *.py[cod]
 *.pyo

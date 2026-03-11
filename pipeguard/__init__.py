@@ -1,3 +1,5 @@
 """PipeGuard — Pre-commit security scanner for GitHub Actions workflows."""
 
-__version__ = "0.1.0"
+from pipeguard._version import __version__
+
+__all__ = ["__version__"]
