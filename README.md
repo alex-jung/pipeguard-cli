@@ -1,6 +1,9 @@
 # PipeGuard
 
-<img src="assets/logo.jpg" alt="PipeGuard" width="200">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <img src="assets/logo-light.svg" alt="PipeGuard" width="200">
+</picture>
 
 [![CI](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
