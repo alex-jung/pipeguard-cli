@@ -1,11 +1,20 @@
 # PipeGuard
 
-<img src="assets/logo.jpg" alt="PipeGuard" width="200">
+<div align="center">
 
 [![CI](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![Downloads](https://img.shields.io/pypi/dm/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
+</div>
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo-light.svg" alt="PipeGuard" width="200">
+  </picture>
+</div>
 
 > Catch GitHub Actions security issues before they reach your runners.
 
@@ -156,7 +165,7 @@ Info-level findings (action inventory) do not affect the exit code.
 
 ## CVE database
 
-PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new release.
+PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new weekly release.
 
 | CVE | Action | Description |
 |-----|--------|-------------|
@@ -196,6 +205,7 @@ repos:
         name: PipeGuard workflow scan
         entry: pipeguard scan
         language: python
+        additional_dependencies: [pipeguard-cli]
         files: \.github/workflows/.*\.ya?ml$
 ```
 
