@@ -7,9 +7,20 @@
 [![Downloads](https://img.shields.io/pypi/dm/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
+> Catch GitHub Actions security issues before they reach your runners.
+
+## Demo
+
 ![Demo](assets/demo.gif)
 
-> Catch GitHub Actions security issues before they reach your runners.
+The recording shows a scan of a real workflow file with multiple security issues.
+PipeGuard detects them all in under a second — no API key, no network call, fully offline:
+
+- `permissions: write-all` grants every job unrestricted write access to the repository
+- `tj-actions/changed-files@v35` and `reviewdog/action-setup@v1` match known CVEs in the bundled database
+- All actions are pinned to tags instead of commit SHAs — a supply-chain risk
+- `echo ${{ secrets.DEPLOY_TOKEN }}` leaks a secret value to the workflow log
+- `8398a7/action-slack` is a third-party action from an unverified publisher
 
 Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain risks, unpinned actions, known CVEs, and secret leaks — before you push.
 
