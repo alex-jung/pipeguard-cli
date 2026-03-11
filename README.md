@@ -28,7 +28,7 @@ PipeGuard detects them all in under a second — no API key, no network call, fu
 
 ---
 
-## How PipeGuard compares
+## PipeGuard vs. the alternatives
 
 | Feature | PipeGuard | actionlint | StepSecurity | act |
 |---------|:---------:|:----------:|:------------:|:---:|
