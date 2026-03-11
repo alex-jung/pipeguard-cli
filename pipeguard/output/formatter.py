@@ -39,8 +39,9 @@ class Formatter:
     # ------------------------------------------------------------------
 
     def _render_terminal(self, findings: list[Finding], workflow_path: str) -> None:
+        self._console.print(f"\n[bold]Scanning:[/bold] {workflow_path}")
         if not findings:
-            self._console.print(f"[green]✓ No issues found in {workflow_path}[/green]")
+            self._console.print("[green]  ✓ No issues found[/green]")
             return
 
         table = Table(box=box.ROUNDED, show_lines=True)

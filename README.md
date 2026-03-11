@@ -33,23 +33,47 @@ sudo snap install actionlint
 ## Usage
 
 ```bash
-pipeguard scan <workflow.yml>
+pipeguard scan [PATH]
 ```
+
+`PATH` can be a single workflow file or a directory. If omitted, defaults to `.github/workflows`.
 
 ### Examples
 
 ```bash
-# Scan a single workflow
+# Scan entire .github/workflows directory (default)
+pipeguard scan
+
+# Scan a specific directory
+pipeguard scan .github/workflows/
+
+# Scan a single file
 pipeguard scan .github/workflows/ci.yml
 
 # JSON output (for scripts / CI pipelines)
-pipeguard scan .github/workflows/ci.yml --format json
+pipeguard scan --format json
 
 # SARIF output (for IDE integration, GitHub Code Scanning)
-pipeguard scan .github/workflows/ci.yml --format sarif
+pipeguard scan --format sarif
 
 # Show auto-fix suggestions
-pipeguard scan .github/workflows/ci.yml --fix
+pipeguard scan --fix
+```
+
+When scanning a directory, pipeguard prints a per-file header and a summary at the end:
+
+```
+Scanning: .github/workflows/ci.yml
+  ✓ No issues found
+
+Scanning: .github/workflows/deploy.yml
+  ╭─────────┬─────────────┬──────────────────────────┬──────────────╮
+  │ Severity│ Rule        │ Location                 │ Message      │
+  ├─────────┼─────────────┼──────────────────────────┼──────────────┤
+  │ error   │ sha-pinning │ deploy.yml:12            │ Action ...   │
+  ╰─────────┴─────────────┴──────────────────────────┴──────────────╯
+
+Scanned 2 file(s) — 1 error(s), 0 warning(s) total.
 ```
 
 ### Exit codes
@@ -83,7 +107,7 @@ Add pipeguard as a pre-push check or CI step:
 - name: Scan workflows
   run: |
     pip install pipeguard
-    pipeguard scan .github/workflows/*.yml
+    pipeguard scan .github/workflows/
 ```
 
 Or as a pre-commit hook (`.pre-commit-config.yaml`):
