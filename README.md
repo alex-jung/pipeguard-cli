@@ -1,14 +1,20 @@
 # PipeGuard
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <img src="assets/logo-light.svg" alt="PipeGuard" width="200">
-</picture>
+<div align="center">
 
 [![CI](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jung/pipeguard-cli/actions/workflows/ci.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![Downloads](https://img.shields.io/pypi/dm/pipeguard-cli)](https://pypi.org/project/pipeguard-cli/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
+</div>
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo-light.svg" alt="PipeGuard" width="200">
+  </picture>
+</div>
 
 > Catch GitHub Actions security issues before they reach your runners.
 
