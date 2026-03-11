@@ -36,13 +36,13 @@ def check_secrets_flow(workflow_path: str) -> list[Finding]:
                     # Find approximate line number.
                     snippet = run_block.splitlines()[0]
                     line_no = next(
-                        (i + 1 for i, l in enumerate(lines) if snippet in l),
+                        (i + 1 for i, line in enumerate(lines) if snippet in line),
                         0,
                     )
                     findings.append(
                         Finding(
                             rule="secrets-leak",
-                            message="Potential secret leak: a secret value may be printed to the log.",
+                            message="Potential secret leak: a secret value may be printed to the log.",  # noqa: E501
                             file=workflow_path,
                             line=line_no,
                             col=0,

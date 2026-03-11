@@ -3,11 +3,11 @@
 import click
 
 from pipeguard import __version__
-from pipeguard.scanner.actionlint_runner import run_actionlint
-from pipeguard.scanner.sha_pinning import check_sha_pinning
-from pipeguard.scanner.secrets_flow import check_secrets_flow
-from pipeguard.scanner.supply_chain import check_supply_chain
 from pipeguard.output.formatter import Formatter, OutputFormat
+from pipeguard.scanner.actionlint_runner import run_actionlint
+from pipeguard.scanner.secrets_flow import check_secrets_flow
+from pipeguard.scanner.sha_pinning import check_sha_pinning
+from pipeguard.scanner.supply_chain import check_supply_chain
 
 
 @click.group()

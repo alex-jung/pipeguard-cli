@@ -58,18 +58,18 @@ def check_supply_chain(workflow_path: str) -> list[Finding]:
         if not node.trusted:
             uses_str = f"{node.action}@{node.ref}"
             line_no = next(
-                (i + 1 for i, l in enumerate(lines) if uses_str in l),
+                (i + 1 for i, line in enumerate(lines) if uses_str in line),
                 0,
             )
             findings.append(
                 Finding(
                     rule="supply-chain",
-                    message=f"Untrusted action '{node.action}' — verify publisher and pin to a SHA.",
+                    message=f"Untrusted action '{node.action}' — verify publisher and pin to a SHA.",  # noqa: E501
                     file=workflow_path,
                     line=line_no,
                     col=0,
                     severity="warning",
-                    fix_suggestion=f"Review {node.action} and pin: uses: {node.action}@<sha>  # {node.ref}",
+                    fix_suggestion=f"Review {node.action} and pin: uses: {node.action}@<sha>  # {node.ref}",  # noqa: E501
                 )
             )
     return findings

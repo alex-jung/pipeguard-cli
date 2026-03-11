@@ -41,14 +41,14 @@ def check_sha_pinning(workflow_path: str) -> list[Finding]:
 
             # Find the line number of this `uses:` entry.
             line_no = next(
-                (i + 1 for i, l in enumerate(lines) if uses in l),
+                (i + 1 for i, line in enumerate(lines) if uses in line),
                 0,
             )
             findings.append(
                 Finding(
                     rule="sha-pinning",
                     message=f"Action '{action}' is pinned to '{ref}' instead of a full commit SHA. "
-                            "This is a supply-chain risk (cf. CVE-2025-30066).",
+                    "This is a supply-chain risk (cf. CVE-2025-30066).",
                     file=workflow_path,
                     line=line_no,
                     col=0,
