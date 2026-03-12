@@ -11,7 +11,35 @@ import yaml
 from pipeguard.scanner.base import Finding
 
 # Well-known trusted publisher prefixes (allowlist seed).
-_TRUSTED_PUBLISHERS = {"actions/", "github/", "docker/"}
+# Includes official publishers from GitHub, major cloud providers,
+# and widely adopted ecosystem tools.
+_TRUSTED_PUBLISHERS = {
+    # GitHub official
+    "actions/",
+    "github/",
+    # Container / packaging
+    "docker/",
+    # Cloud providers
+    "aws-actions/",
+    "google-github-actions/",
+    "azure/",
+    # HashiCorp
+    "hashicorp/",
+    # Microsoft
+    "microsoft/",
+    # Security / signing
+    "sigstore/",
+    "aquasecurity/",
+    # Kubernetes ecosystem
+    "helm/",
+    # Code quality
+    "codecov/",
+    "coverallsapp/",
+    # Package managers / runtimes
+    "pnpm/",
+    "ruby/",
+    "gradle/",
+}
 
 _USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
 
