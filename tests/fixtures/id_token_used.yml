@@ -1,0 +1,18 @@
+# Fixture: id-token: write with a legitimate OIDC action (for testing only — mock data)
+name: ID Token Used
+
+on: [push]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # v4.0.2
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/my-role
+          aws-region: eu-central-1
