@@ -154,6 +154,8 @@ Info-level findings (action inventory) do not affect the exit code.
 | `permissions-excessive` | warning | Sensitive scope (e.g. `secrets`, `workflows`) set to `write` |
 | `permissions-id-token-unused` | warning | `id-token: write` is set but no OIDC-consuming action is present — allows minting cloud credentials unnecessarily |
 | `permissions-invalid` | error | Unknown permission level (not `read`, `write`, or `none`) |
+| `pull-request-target` | warning | `pull_request_target` trigger runs with base-repo write permissions and secret access — even for fork PRs |
+| `pull-request-target-pwn` | error | `pull_request_target` combined with checkout of the PR head ref — allows untrusted fork code to run with secrets (Pwn Request) |
 | `actionlint` | error | Syntax and type errors (requires actionlint) |
 
 ### Info

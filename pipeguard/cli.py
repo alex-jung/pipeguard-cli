@@ -14,6 +14,7 @@ from pipeguard.scanner.github_actions.action_inventory import check_action_inven
 from pipeguard.scanner.github_actions.actionlint_runner import run_actionlint
 from pipeguard.scanner.github_actions.cve_check import check_cve
 from pipeguard.scanner.github_actions.permissions import check_permissions
+from pipeguard.scanner.github_actions.pull_request_target import check_pull_request_target
 from pipeguard.scanner.github_actions.secrets_flow import check_secrets_flow
 from pipeguard.scanner.github_actions.sha_pinning import check_sha_pinning
 from pipeguard.scanner.github_actions.supply_chain import check_supply_chain
@@ -39,6 +40,7 @@ def _scan_file(workflow: Path) -> list[Finding]:
     findings += check_secrets_flow(str(workflow))
     findings += check_supply_chain(str(workflow))
     findings += check_permissions(str(workflow))
+    findings += check_pull_request_target(str(workflow))
     findings += check_cve(str(workflow))
     findings += check_action_inventory(str(workflow))
     return findings
