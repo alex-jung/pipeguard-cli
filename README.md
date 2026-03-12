@@ -168,11 +168,18 @@ Info-level findings (action inventory) do not affect the exit code.
 
 PipeGuard ships with a built-in offline CVE database — no API key, no network call during scan. The database is updated daily via NVD and shipped with each new weekly release.
 
+<!-- cve-updated-start -->
+> [!NOTE]
+> Last updated: 2026-03-12
+<!-- cve-updated-end -->
+
+<!-- cve-table-start -->
 | CVE | Action | Description |
 |-----|--------|-------------|
-| [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066) | `tj-actions/changed-files` | Supply-chain attack — all tag-based refs affected |
-| [CVE-2025-30154](https://www.cve.org/CVERecord?id=CVE-2025-30154) | `reviewdog/action-setup` | Supply-chain attack — same campaign as CVE-2025-30066 |
-| [CVE-2023-49291](https://www.cve.org/CVERecord?id=CVE-2023-49291) | `tj-actions/branch-names` | Script injection via crafted branch name — steals secrets and abuses GITHUB_TOKEN |
+| [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066) | `tj-actions/changed-files` | tj-actions/changed-files was compromised in a supply-chain attack. All tag-based refs are potentially affected — pin to a known-good SHA. |
+| [CVE-2025-30154](https://www.cve.org/CVERecord?id=CVE-2025-30154) | `reviewdog/action-setup` | reviewdog/action-setup was compromised in the same supply-chain campaign as tj-actions/changed-files. Pin to a vetted SHA. |
+| [CVE-2023-49291](https://www.cve.org/CVERecord?id=CVE-2023-49291) | `tj-actions/branch-names` | tj-actions/branch-names improperly references github.event.pull_request.head.ref and github.head_ref in a run step, allowing a specially crafted branch name to execute arbitrary code and steal secrets or abuse GITHUB_TOKEN permissions. |
+<!-- cve-table-end -->
 
 SHA-pinned refs are not flagged — another reason to always pin to a commit SHA.
 
