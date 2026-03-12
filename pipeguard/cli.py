@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from pipeguard import __version__
+from pipeguard.config import PipeGuardConfig, load_config
 from pipeguard.output.formatter import Formatter, OutputFormat
 from pipeguard.scanner.base import Finding
 from pipeguard.scanner.github_actions.action_inventory import check_action_inventory
@@ -33,12 +34,12 @@ def _collect_workflows(path: str) -> list[Path]:
     return files
 
 
-def _scan_file(workflow: Path) -> list[Finding]:
+def _scan_file(workflow: Path, config: PipeGuardConfig | None = None) -> list[Finding]:
     findings: list[Finding] = []
     findings += run_actionlint(str(workflow))
     findings += check_sha_pinning(str(workflow))
     findings += check_secrets_flow(str(workflow))
-    findings += check_supply_chain(str(workflow))
+    findings += check_supply_chain(str(workflow), config)
     findings += check_permissions(str(workflow))
     findings += check_pull_request_target(str(workflow))
     findings += check_cve(str(workflow))
@@ -63,8 +64,16 @@ def main() -> None:
     help="Output format.",
 )
 @click.option("--fix", is_flag=True, help="Generate auto-fix suggestions.")
-def scan(path: str, output_format: str, fix: bool) -> None:
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="Path to a pipeguard config file (default: auto-detect .pipeguard.yml).",
+)
+def scan(path: str, output_format: str, fix: bool, config_path: str | None) -> None:
     """Scan a workflow FILE or DIRECTORY (default: .github/workflows)."""
+    config = load_config(Path(config_path).parent if config_path else None)
     workflows = _collect_workflows(path)
 
     if not workflows:
@@ -75,7 +84,7 @@ def scan(path: str, output_format: str, fix: bool) -> None:
     all_findings: list[Finding] = []
 
     for workflow in workflows:
-        findings = _scan_file(workflow)
+        findings = _scan_file(workflow, config)
         all_findings.extend(findings)
         fmt.render(findings, str(workflow))
 

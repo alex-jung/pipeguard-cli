@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from pipeguard.config import PipeGuardConfig
 from pipeguard.scanner.base import Finding
 
 # Well-known trusted publisher prefixes (allowlist seed).
@@ -51,11 +52,21 @@ class ActionNode:
     trusted: bool
 
 
-def _is_trusted(action: str) -> bool:
-    return any(action.startswith(prefix) for prefix in _TRUSTED_PUBLISHERS)
+def _is_trusted(action: str, config: PipeGuardConfig | None = None) -> bool:
+    if any(action.startswith(prefix) for prefix in _TRUSTED_PUBLISHERS):
+        return True
+    if config is None:
+        return False
+    if any(action.startswith(prefix) for prefix in config.trusted_publishers):
+        return True
+    if action in config.trusted_actions:
+        return True
+    return False
 
 
-def build_dependency_graph(workflow_path: str) -> list[ActionNode]:
+def build_dependency_graph(
+    workflow_path: str, config: PipeGuardConfig | None = None
+) -> list[ActionNode]:
     """Return all third-party actions used in the workflow."""
     text = Path(workflow_path).read_text()
     data = yaml.safe_load(text)
@@ -72,17 +83,17 @@ def build_dependency_graph(workflow_path: str) -> list[ActionNode]:
             if not m:
                 continue
             action, ref = m.group("action"), m.group("ref")
-            nodes.append(ActionNode(action=action, ref=ref, trusted=_is_trusted(action)))
+            nodes.append(ActionNode(action=action, ref=ref, trusted=_is_trusted(action, config)))
     return nodes
 
 
-def check_supply_chain(workflow_path: str) -> list[Finding]:
+def check_supply_chain(workflow_path: str, config: PipeGuardConfig | None = None) -> list[Finding]:
     """Return findings for untrusted third-party actions."""
     text = Path(workflow_path).read_text()
     lines = text.splitlines()
 
     findings: list[Finding] = []
-    for node in build_dependency_graph(workflow_path):
+    for node in build_dependency_graph(workflow_path, config):
         if not node.trusted:
             uses_str = f"{node.action}@{node.ref}"
             line_no = next(
