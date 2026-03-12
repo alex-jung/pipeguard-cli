@@ -2,22 +2,109 @@
   {
     "action": "tj-actions/changed-files",
     "cve_id": "CVE-2025-30066",
-    "description": "tj-actions/changed-files was compromised in a supply-chain attack. All tag-based refs are potentially affected — pin to a known-good SHA.",
-    "affected_refs": ["all_tags"],
+    "description": "tj-actions/changed-files was compromised in a supply-chain attack. All tag-based refs are potentially affected \u2014 pin to a known-good SHA.",
+    "affected_refs": [
+      "all_tags"
+    ],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-30066"
   },
   {
     "action": "reviewdog/action-setup",
     "cve_id": "CVE-2025-30154",
     "description": "reviewdog/action-setup was compromised in the same supply-chain campaign as tj-actions/changed-files. Pin to a vetted SHA.",
-    "affected_refs": ["all_tags"],
+    "affected_refs": [
+      "all_tags"
+    ],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-30154"
   },
   {
     "action": "tj-actions/branch-names",
     "cve_id": "CVE-2023-49291",
     "description": "tj-actions/branch-names improperly references github.event.pull_request.head.ref and github.head_ref in a run step, allowing a specially crafted branch name to execute arbitrary code and steal secrets or abuse GITHUB_TOKEN permissions.",
-    "affected_refs": ["all_tags"],
+    "affected_refs": [
+      "all_tags"
+    ],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2023-49291"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2023-24538",
+    "description": "Templates do not properly consider backticks (`) as Javascript string delimiters, and do not escape them as expected. Backticks are used, since ES6, for JS template literals. If a template contains a Go template action within a Javascript template literal, the contents of the action can be used to terminate the literal, injecting arbitrary Javascript code into the Go template. As ES6 template literals are rather complex, and themselves can do string interpolation, the decision was made to simply disallow Go template actions from being used inside of them (e.g. \"var a = {{.}}\"), since there is no obviously safe way to allow this behavior. This takes the same approach as github.com/google/safehtml. With fix, Template.Parse returns an Error when it encounters templates like this, with an ErrorCode of value 12. This ErrorCode is currently unexported, but will be exported in the release of Go 1.21. Users who rely on the previous behavior can re-enable it using the GODEBUG flag jstmpllitinterp=1, with the caveat that backticks will now be escaped. This should be used with caution.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2023-24538"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2023-29453",
+    "description": "Templates do not properly consider backticks (`) as Javascript string delimiters, and do not escape them as expected. Backticks are used, since ES6, for JS template literals. If a template contains a Go template action within a Javascript template literal, the contents of the action can be used to terminate the literal, injecting arbitrary Javascript code into the Go template. As ES6 template literals are rather complex, and themselves can do string interpolation, the decision was made to simply disallow Go template actions from being used inside of them (e.g., \"var a = {{.}}\"), since there is no obviously safe way to allow this behavior. This takes the same approach as github.com/google/safehtml. With fix, Template. Parse returns an Error when it encounters templates like this, with an ErrorCode of value 12. This ErrorCode is currently unexported but will be exported in the release of Go 1.21. Users who rely on the previous behavior can re-enable it using the GODEBUG flag jstmpllitinterp=1, with the caveat that backticks will now be escaped. This should be used with caution.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2023-29453"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2024-1355",
+    "description": "A command injection vulnerability was identified in GitHub Enterprise Server that allowed an attacker with an editor role in the Management Console to gain admin SSH access to the appliance via the actions-console\u00a0docker container while setting a service URL. Exploitation of this vulnerability required access to the GitHub Enterprise Server instance and access to the Management Console with the editor role. This vulnerability affected all versions of GitHub Enterprise Server prior to 3.12 and was fixed in versions 3.11.5, 3.10.7, 3.9.10, and 3.8.15. This vulnerability was reported via the GitHub Bug Bounty program.\n",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2024-1355"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2024-39700",
+    "description": "JupyterLab extension template is a  `copier` template for JupyterLab extensions. Repositories created using this template with `test` option include `update-integration-tests.yml` workflow which has an RCE vulnerability. Extension authors hosting their code on GitHub are urged to upgrade the template to the latest version. Users who made changes to `update-integration-tests.yml`, accept overwriting of this file and re-apply your changes later. Users may wish to temporarily disable GitHub Actions while working on the upgrade. We recommend rebasing all open pull requests from untrusted users as actions may run using the version from the `main` branch at the time when the pull request was created. Users who are upgrading from template version prior to 4.3.0 may wish to leave out proposed changes to the release workflow for now as it requires additional configuration.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2024-39700"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2024-52009",
+    "description": "Atlantis is a self-hosted golang application that listens for Terraform pull request events via webhooks. Atlantis logs contains GitHub credentials (tokens `ghs_...`) when they are rotated. This enables an attacker able to read these logs to impersonate Atlantis application and to perform actions on GitHub. When Atlantis is used to administer a GitHub organization, this enables getting administration privileges on the organization. This was reported in #4060 and fixed in #4667 . The fix was included in Atlantis v0.30.0. All users are advised to upgrade. There are no known workarounds for this vulnerability.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2024-52009"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2025-58371",
+    "description": "Roo Code is an AI-powered autonomous coding agent that lives in users' editors. In versions 3.26.6 and below, a Github workflow used unsanitized pull request metadata in a privileged context, allowing an attacker to craft malicious input and achieve Remote Code Execution (RCE) on the Actions runner. The workflow runs with broad permissions and access to repository secrets. It is possible for an attacker to execute arbitrary commands on the runner, push or modify code in the repository, access secrets, and create malicious releases or packages, resulting in a complete compromise of the repository and its associated services. This is fixed in version 3.26.7.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-58371"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2025-11892",
+    "description": "An improper neutralization of input vulnerability was identified in GitHub Enterprise Server that allows DOM-based cross-site scripting via Issues search label filter that could lead to privilege escalation and unauthorized workflow triggers. Successful exploitation requires an attacker to have access to the target GitHub Enterprise Server instance and to entice a user, while operating in sudo mode, to click on a crafted malicious link to perform actions that require elevated privileges.\u00a0This vulnerability affected all versions of GitHub Enterprise Server prior to\u00a03.18.1, 3.17.7, 3.16.10, 3.15.14, 3.14.19.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-11892"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2025-67727",
+    "description": "Parse Server is an open source backend that can be deployed to any infrastructure that runs Node.js. In versions prior to 8.6.0-alpha.2, a GitHub CI workflow is triggered in a way that grants the GitHub Actions workflow elevated permissions, giving it access to GitHub secrets and write permissions which are defined in the workflow. Code from a fork or lifecycle scripts is potentially included. Only the repository's CI/CD infrastructure is affected, including any public GitHub forks with GitHub Actions enabled. This issue is fixed version 8.6.0-alpha.2 and commits 6b9f896 and e3d27fe.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2025-67727"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2026-0573",
+    "description": "An URL redirection vulnerability was identified in GitHub Enterprise Server that allowed attacker-controlled redirects to leak sensitive authorization tokens. The repository_pages API insecurely followed HTTP redirects when fetching artifact URLs, preserving the authorization header containing a privileged JWT. An authenticated user could redirect these requests to an attacker-controlled domain, exfiltrate the Actions.ManageOrgs JWT, and leverage it for potential remote code execution. Attackers would require access to the target GitHub Enterprise Server instance and the ability to exploit a legacy redirect to an attacker-controlled domain. This vulnerability affected all versions of GitHub Enterprise Server prior to 3.19 and was fixed in versions 3.19.2, 3.18.4, 3.17.10, 3.16.13, 3.15.17, and 3.14.22. This vulnerability was reported via the GitHub Bug Bounty program.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2026-0573"
   }
 ]
