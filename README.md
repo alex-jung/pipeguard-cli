@@ -149,6 +149,7 @@ Info-level findings (action inventory) do not affect the exit code.
 | `cve-<id>` | error | Action matches a known CVE in the local database (offline, no API) |
 | `supply-chain` | warning | Third-party action from an unverified publisher |
 | `secrets-leak` | error | Secret value echoed or logged in a `run:` step |
+| `secrets-leak-debug` | error / warning | `set -x` or `set -o xtrace` in a `run:` step — shell debug mode prints every expanded command; error when secrets are in env scope, warning otherwise |
 | `permissions-missing` | error | No `permissions:` block — GitHub grants write access to most scopes by default |
 | `permissions-write-all` | error | `permissions: write-all` at top-level or per-job |
 | `permissions-excessive` | warning | Sensitive scope (e.g. `secrets`, `workflows`) set to `write` |
