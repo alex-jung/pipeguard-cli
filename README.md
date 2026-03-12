@@ -109,6 +109,9 @@ pipeguard scan --format json
 
 # SARIF output (for IDE integration, GitHub Code Scanning)
 pipeguard scan --format sarif
+
+# Use a custom config file
+pipeguard scan --config path/to/.pipeguard.yml
 ```
 
 When scanning a directory, pipeguard prints a per-file header and a summary at the end:
@@ -148,7 +151,7 @@ Info-level findings (action inventory) do not affect the exit code.
 | `sha-pinning` | error | Action pinned to a tag or branch instead of a full commit SHA — supply-chain risk (cf. [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066)) |
 | `sha-pinning-reusable` | error | Reusable workflow called with a tag or branch ref instead of a full commit SHA — same supply-chain risk as unpinned actions |
 | `cve-<id>` | error | Action matches a known CVE in the local database (offline, no API) |
-| `supply-chain` | warning | Third-party action from an unverified publisher |
+| `supply-chain` | warning | Third-party action from an unverified publisher — suppress per publisher or action via `.pipeguard.yml` |
 | `secrets-leak` | error | Secret value echoed or logged in a `run:` step |
 | `secrets-leak-debug` | error / warning | `set -x` or `set -o xtrace` in a `run:` step — shell debug mode prints every expanded command; error when secrets are in env scope, warning otherwise |
 | `permissions-missing` | error | No `permissions:` block — GitHub grants write access to most scopes by default |
@@ -192,6 +195,32 @@ To get the latest CVEs, upgrade to the newest release:
 ```bash
 pip install --upgrade pipeguard-cli
 ```
+
+---
+
+## Configuration
+
+PipeGuard looks for a `.pipeguard.yml` (or `.pipeguard.yaml`, `pipeguard.yml`, `pipeguard.yaml`) in the current directory and its parents.
+
+### Suppress `supply-chain` warnings for trusted publishers
+
+If you trust a specific publisher or action, add them to the allowlist:
+
+```yaml
+# .pipeguard.yml
+trusted_publishers:
+  - my-org           # suppresses all warnings for my-org/*
+  - some-vendor      # suppresses all warnings for some-vendor/*
+
+trusted_actions:
+  - other-org/specific-action  # suppresses warning for this exact action only
+```
+
+- `trusted_publishers` matches as a prefix — every action from `my-org/*` is considered trusted.
+- `trusted_actions` requires an exact match on the action name (without the `@ref`).
+- A trailing `/` in publisher names is optional; PipeGuard normalises it automatically.
+
+The built-in allowlist (GitHub, AWS, Azure, Google, Docker, HashiCorp, etc.) is always active and cannot be removed.
 
 ---
 
