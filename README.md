@@ -152,6 +152,7 @@ Info-level findings (action inventory) do not affect the exit code.
 | `permissions-missing` | error | No `permissions:` block — GitHub grants write access to most scopes by default |
 | `permissions-write-all` | error | `permissions: write-all` at top-level or per-job |
 | `permissions-excessive` | warning | Sensitive scope (e.g. `secrets`, `workflows`) set to `write` |
+| `permissions-id-token-unused` | warning | `id-token: write` is set but no OIDC-consuming action is present — allows minting cloud credentials unnecessarily |
 | `permissions-invalid` | error | Unknown permission level (not `read`, `write`, or `none`) |
 | `actionlint` | error | Syntax and type errors (requires actionlint) |
 
@@ -242,3 +243,5 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 In active development. All Free-tier scanners are functional.
 Planned: auto-fix PRs (Pro), Maintainer Trust Score (Pro), cloud sandbox testing, IDE plugin.
+
+Free-tier checks: SHA-pinning, CVE database, permissions audit (incl. `id-token: write` without OIDC), secrets-leak detection, action inventory, actionlint syntax checks.
