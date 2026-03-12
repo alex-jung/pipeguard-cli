@@ -1,0 +1,12 @@
+# Fixture: reusable workflow call pinned to a SHA — safe (mock data)
+name: Reusable Pinned
+
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  call-build:
+    uses: my-org/shared-workflows/.github/workflows/build.yml@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+    secrets: inherit

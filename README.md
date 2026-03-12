@@ -146,6 +146,7 @@ Info-level findings (action inventory) do not affect the exit code.
 | Rule | Severity | Description |
 |------|----------|-------------|
 | `sha-pinning` | error | Action pinned to a tag or branch instead of a full commit SHA — supply-chain risk (cf. [CVE-2025-30066](https://www.cve.org/CVERecord?id=CVE-2025-30066)) |
+| `sha-pinning-reusable` | error | Reusable workflow called with a tag or branch ref instead of a full commit SHA — same supply-chain risk as unpinned actions |
 | `cve-<id>` | error | Action matches a known CVE in the local database (offline, no API) |
 | `supply-chain` | warning | Third-party action from an unverified publisher |
 | `secrets-leak` | error | Secret value echoed or logged in a `run:` step |

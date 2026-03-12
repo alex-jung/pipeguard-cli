@@ -1,0 +1,12 @@
+# Fixture: reusable workflow call pinned to a tag — supply-chain risk (mock data)
+name: Reusable Unpinned
+
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  call-build:
+    uses: my-org/shared-workflows/.github/workflows/build.yml@main
+    secrets: inherit
