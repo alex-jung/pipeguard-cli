@@ -1,0 +1,66 @@
+name: CVE Database Entry
+description: Report a GitHub Actions CVE missing from the bundled database
+title: "cve: add "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to request that a CVE be added to PipeGuard's offline CVE database.
+        Only CVEs that affect a specific GitHub Action (owner/repo) are in scope.
+
+  - type: input
+    id: cve_id
+    attributes:
+      label: CVE ID
+      placeholder: "CVE-2025-XXXXX"
+    validations:
+      required: true
+
+  - type: input
+    id: action
+    attributes:
+      label: Affected GitHub Action
+      placeholder: "owner/action-name"
+    validations:
+      required: true
+
+  - type: input
+    id: cvss
+    attributes:
+      label: CVSS v3 base score
+      placeholder: "9.8"
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_refs
+    attributes:
+      label: Affected refs
+      description: Which tags, branches, or SHAs are affected? Write "all_tags" if all tag-based refs are affected.
+      placeholder: "all_tags / v1, v2 / specific-tag"
+    validations:
+      required: true
+
+  - type: input
+    id: advisory_url
+    attributes:
+      label: Advisory URL
+      placeholder: "https://www.cve.org/CVERecord?id=CVE-2025-XXXXX"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Short description
+      description: One or two sentences suitable for the CVE database and README table.
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow_example
+    attributes:
+      label: Affected workflow example
+      description: A workflow snippet that uses the affected action in a vulnerable way.
+      render: yaml

@@ -1,0 +1,62 @@
+name: Bug Report
+description: False positive, false negative, or unexpected behavior
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: Bug type
+      options:
+        - False positive (PipeGuard flags something that is safe)
+        - False negative (PipeGuard misses a real security issue)
+        - Crash or unexpected error
+        - Wrong output format (JSON / SARIF)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: PipeGuard version
+      placeholder: "output of: pipeguard --version"
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow file
+      description: Paste the workflow file (or minimal reproduction). Remove any real secrets.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What did PipeGuard output?
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should PipeGuard have reported instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: OS, Python version, actionlint version, anything else relevant

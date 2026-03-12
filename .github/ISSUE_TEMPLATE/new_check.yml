@@ -1,0 +1,62 @@
+name: New Security Check
+description: Propose a new scanner rule or detection pattern
+title: "feat: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening this issue, please search existing issues and the README to make sure the check doesn't already exist.
+
+  - type: textarea
+    id: workflow_example
+    attributes:
+      label: Workflow example
+      description: |
+        Paste a real (or realistic) workflow file that demonstrates the security problem.
+        This is required — abstract descriptions without a concrete example will not be accepted.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is the security risk?
+      description: Explain why the pattern above is dangerous and what an attacker could do.
+    validations:
+      required: true
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: What is the correct fix?
+      description: What should the workflow look like after the fix? How should PipeGuard's fix_suggestion read?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Suggested severity
+      options:
+        - error (directly exploitable)
+        - warning (elevated risk, context-dependent)
+        - info (informational)
+    validations:
+      required: true
+
+  - type: input
+    id: references
+    attributes:
+      label: References
+      description: CVEs, blog posts, advisories, or GitHub Security Lab findings that back this up
+      placeholder: "https://..."
+
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Offline check
+      description: Can this check run fully offline without API calls?
+      options:
+        - label: Yes, this check requires no network access
