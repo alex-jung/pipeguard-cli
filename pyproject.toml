@@ -6,6 +6,9 @@ build-backend = "hatchling.build"
 name = "pipeguard-cli"
 dynamic = ["version"]
 description = "Pre-commit security scanner for GitHub Actions workflows"
+authors = [
+  { name = "Alex Jung", email = "contact@alex-jung.org" }
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
