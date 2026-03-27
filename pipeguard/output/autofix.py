@@ -1,37 +1,62 @@
-"""Generates auto-fix suggestions for findings (e.g. SHA-pinning patches)."""
+"""Applies auto-fixes by calling the PipeGuard Pro API backend."""
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import requests
+
 if TYPE_CHECKING:
-    from pipeguard.scanner.base import Finding
+    from pipeguard.dataclasses import Finding
+
+from pipeguard.const import API_TIMEOUT, DEFAULT_API_URL
 
 
-def generate_fixes(findings: list[Finding], workflow_path: str) -> str:
-    """Return a unified-diff-style patch for all fixable findings.
+def apply_fixes(
+    findings: list[Finding],
+    workflow_path: str,
+    license_key: str,
+    api_url: str | None = None,
+) -> tuple[int, int]:
+    """Request auto-fixes from the Pro API and write the patched file.
 
-    Currently supports: sha-pinning
+    Returns (applied, skipped) counts.
     """
-    original = Path(workflow_path).read_text()
-    patched = original
+    api_url = api_url or os.environ.get("PIPEGUARD_API_URL", DEFAULT_API_URL)
 
-    for f in findings:
-        if f.rule == "sha-pinning" and f.fix_suggestion:
-            # Placeholder: real implementation would resolve the SHA via GitHub API.
-            pass
+    try:
+        workflow_yaml = Path(workflow_path).read_text()
+    except OSError:
+        return 0, 0
 
-    if patched == original:
-        return ""
+    try:
+        resp = requests.post(
+            f"{api_url}/v1/fix",
+            headers={"Authorization": f"Bearer {license_key}"},
+            json={
+                "workflow": workflow_yaml,
+                "findings": [
+                    {"rule": f.rule, "line": f.line, "col": f.col}
+                    for f in findings
+                    if f.fix_suggestion
+                ],
+            },
+            timeout=API_TIMEOUT,
+        )
+    except requests.RequestException:
+        return 0, 0
 
-    # Return as unified diff.
-    import difflib
+    if not resp.ok:
+        return 0, 0
 
-    diff = difflib.unified_diff(
-        original.splitlines(keepends=True),
-        patched.splitlines(keepends=True),
-        fromfile=f"a/{workflow_path}",
-        tofile=f"b/{workflow_path}",
-    )
-    return "".join(diff)
+    data = resp.json()
+    patched: str | None = data.get("patched_workflow")
+    applied: int = data.get("applied", 0)
+    skipped: int = data.get("skipped", 0)
+
+    if patched and patched != workflow_yaml:
+        Path(workflow_path).write_text(patched)
+
+    return applied, skipped

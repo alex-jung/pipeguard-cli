@@ -3,16 +3,13 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import TypedDict
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-_USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
-_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+from pipeguard.const import SHA_RE, USES_RE
+from pipeguard.dataclasses import Finding, Severity
 
 _CVE_DB_PATH = Path(__file__).parent / "cve_db.json"
 
@@ -51,13 +48,13 @@ def check_cve(workflow_path: str) -> list[Finding]:
             uses = step.get("uses", "") if isinstance(step, dict) else ""
             if not uses or uses.startswith("./"):
                 continue
-            m = _USES_RE.match(uses)
+            m = USES_RE.match(uses)
             if not m:
                 continue
             action, ref = m.group("action"), m.group("ref")
 
             for record in cve_db.get(action.lower(), []):
-                is_tag = not _SHA_RE.match(ref)
+                is_tag = not SHA_RE.match(ref)
                 hit = ("all_tags" in record["affected_refs"] and is_tag) or (
                     ref in record["affected_refs"]
                 )
@@ -78,7 +75,7 @@ def check_cve(workflow_path: str) -> list[Finding]:
                         file=workflow_path,
                         line=line_no,
                         col=0,
-                        severity="error",
+                        severity=Severity.ERROR,
                         fix_suggestion=(
                             f"Immediately pin '{action}' to a verified safe SHA. "
                             f"See {record['advisory_url']}"

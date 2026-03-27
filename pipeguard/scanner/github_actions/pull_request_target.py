@@ -2,22 +2,16 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-# Expressions that reference the PR contributor's code in a checkout ref.
-_HEAD_REF_PATTERNS = [
-    re.compile(r"github\.event\.pull_request\.head\.(ref|sha)"),
-    re.compile(r"github\.head_ref"),
-]
+from pipeguard.const import HEAD_REF_PATTERNS
+from pipeguard.dataclasses import Finding, Severity
 
 
 def _uses_head_ref(value: str) -> bool:
-    return any(p.search(value) for p in _HEAD_REF_PATTERNS)
+    return any(p.search(value) for p in HEAD_REF_PATTERNS)
 
 
 def _has_pwn_request(jobs: dict[str, object]) -> bool:
@@ -79,7 +73,7 @@ def check_pull_request_target(workflow_path: str) -> list[Finding]:
                 file=workflow_path,
                 line=line_no,
                 col=0,
-                severity="error",
+                severity=Severity.ERROR,
                 fix_suggestion=(
                     "Never check out 'github.event.pull_request.head.ref' or "
                     "'github.head_ref' in a pull_request_target workflow. "
@@ -98,7 +92,7 @@ def check_pull_request_target(workflow_path: str) -> list[Finding]:
             file=workflow_path,
             line=line_no,
             col=0,
-            severity="warning",
+            severity=Severity.WARNING,
             fix_suggestion=(
                 "Avoid 'pull_request_target' unless required. If needed, never check out "
                 "PR head code, and use an environment with required reviewers "

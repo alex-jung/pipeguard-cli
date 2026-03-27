@@ -1,5 +1,7 @@
 docs/private/
 
+.pipeguard.yml
+
 # Secrets & Umgebung
 .env
 .env.local

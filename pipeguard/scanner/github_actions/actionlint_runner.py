@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 
-from pipeguard.scanner.base import Finding
+from pipeguard.dataclasses import Finding, Severity
 
 
 def run_actionlint(workflow_path: str) -> list[Finding]:
@@ -37,7 +37,7 @@ def run_actionlint(workflow_path: str) -> list[Finding]:
                 file=str(item.get("filepath", workflow_path)),
                 line=int(item.get("line", 0)),
                 col=int(item.get("column", 0)),
-                severity="error",
+                severity=Severity.ERROR,
             )
         )
     return findings

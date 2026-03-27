@@ -2,17 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-# Matches "owner/repo[@ref]" in `uses:` lines.
-_USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
-# A full SHA is 40 hex chars.
-_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+from pipeguard.const import SHA_RE, USES_RE
+from pipeguard.dataclasses import Finding, Severity
 
 
 def check_sha_pinning(workflow_path: str) -> list[Finding]:
@@ -52,12 +47,12 @@ def _check_uses(
     if uses.startswith("./"):
         return []  # local action / local reusable workflow — skip
 
-    m = _USES_RE.match(uses)
+    m = USES_RE.match(uses)
     if not m:
         return []
 
     action, ref = m.group("action"), m.group("ref")
-    if _SHA_RE.match(ref):
+    if SHA_RE.match(ref):
         return []  # already pinned
 
     line_no = next((i + 1 for i, line in enumerate(lines) if uses in line), 0)
@@ -84,7 +79,7 @@ def _check_uses(
             file=workflow_path,
             line=line_no,
             col=0,
-            severity="error",
+            severity=Severity.ERROR,
             fix_suggestion=fix,
         )
     ]

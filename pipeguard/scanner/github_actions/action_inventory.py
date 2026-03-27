@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import re
 from collections import defaultdict
 from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-_USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
+from pipeguard.const import USES_RE
+from pipeguard.dataclasses import Finding, Severity
 
 
 def check_action_inventory(workflow_path: str) -> list[Finding]:
@@ -29,7 +27,7 @@ def check_action_inventory(workflow_path: str) -> list[Finding]:
             uses = step.get("uses", "") if isinstance(step, dict) else ""
             if not uses or uses.startswith("./"):
                 continue
-            m = _USES_RE.match(uses)
+            m = USES_RE.match(uses)
             if not m:
                 continue
             action, ref = m.group("action"), m.group("ref")
@@ -53,7 +51,7 @@ def check_action_inventory(workflow_path: str) -> list[Finding]:
                 file=workflow_path,
                 line=first_line,
                 col=0,
-                severity="info",
+                severity=Severity.INFO,
             )
         )
     return findings

@@ -2,47 +2,14 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
 from pipeguard.config import PipeGuardConfig
-from pipeguard.scanner.base import Finding
-
-# Well-known trusted publisher prefixes (allowlist seed).
-# Includes official publishers from GitHub, major cloud providers,
-# and widely adopted ecosystem tools.
-_TRUSTED_PUBLISHERS = {
-    # GitHub official
-    "actions/",
-    "github/",
-    # Container / packaging
-    "docker/",
-    # Cloud providers
-    "aws-actions/",
-    "google-github-actions/",
-    "azure/",
-    # HashiCorp
-    "hashicorp/",
-    # Microsoft
-    "microsoft/",
-    # Security / signing
-    "sigstore/",
-    "aquasecurity/",
-    # Kubernetes ecosystem
-    "helm/",
-    # Code quality
-    "codecov/",
-    "coverallsapp/",
-    # Package managers / runtimes
-    "pnpm/",
-    "ruby/",
-    "gradle/",
-}
-
-_USES_RE = re.compile(r"^(?P<action>[^@]+)@(?P<ref>.+)$")
+from pipeguard.const import TRUSTED_PUBLISHERS, USES_RE
+from pipeguard.dataclasses import Finding, Severity
 
 
 @dataclass
@@ -53,7 +20,7 @@ class ActionNode:
 
 
 def _is_trusted(action: str, config: PipeGuardConfig | None = None) -> bool:
-    if any(action.startswith(prefix) for prefix in _TRUSTED_PUBLISHERS):
+    if any(action.startswith(prefix) for prefix in TRUSTED_PUBLISHERS):
         return True
     if config is None:
         return False
@@ -79,7 +46,7 @@ def build_dependency_graph(
             uses = step.get("uses", "") if isinstance(step, dict) else ""
             if not uses or uses.startswith("./"):
                 continue
-            m = _USES_RE.match(uses)
+            m = USES_RE.match(uses)
             if not m:
                 continue
             action, ref = m.group("action"), m.group("ref")
@@ -107,7 +74,7 @@ def check_supply_chain(workflow_path: str, config: PipeGuardConfig | None = None
                     file=workflow_path,
                     line=line_no,
                     col=0,
-                    severity="warning",
+                    severity=Severity.WARNING,
                     fix_suggestion=f"Review {node.action} and pin: uses: {node.action}@<sha>  # {node.ref}",  # noqa: E501
                 )
             )

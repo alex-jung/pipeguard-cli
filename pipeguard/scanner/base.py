@@ -3,18 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
-
-@dataclass
-class Finding:
-    rule: str
-    message: str
-    file: str
-    line: int
-    col: int
-    severity: str = "error"  # "error" | "warning" | "info"
-    fix_suggestion: str | None = None
+from pipeguard.dataclasses import Finding  # noqa: F401  re-exported for compat
 
 
 class BaseScanner(ABC):
