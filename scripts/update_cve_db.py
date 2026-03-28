@@ -109,7 +109,10 @@ def update_readme_date(text: str) -> str:
 
 
 def update_readme(readme_path: Path, records: list[dict[str, object]]) -> bool:
-    """Replace the CVE table section and update the date in README.md. Always writes. Returns True if changed."""
+    """Replace the CVE table section and update the date in README.md.
+
+    Always writes the file. Returns True if content changed.
+    """
     original = readme_path.read_text()
     text = update_readme_date(original)
     start = text.find(_README_START)

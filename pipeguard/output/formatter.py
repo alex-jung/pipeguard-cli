@@ -61,7 +61,11 @@ class Formatter:
 
         for f in findings:
             icon, sev_style = self._SEV_ICON.get(f.severity, ("·", "white"))
-            score_tag = f" [magenta][{f.score}/100][/magenta]" if self.verbose and f.score is not None else ""
+            score_tag = (
+                f" [magenta][{f.score}/100][/magenta]"
+                if self.verbose and f.score is not None
+                else ""
+            )
             self._console.print(
                 f"  [{sev_style}]{icon} {f.severity:<8}[/{sev_style}]"
                 f"  [cyan]{f.rule:<28}[/cyan]"

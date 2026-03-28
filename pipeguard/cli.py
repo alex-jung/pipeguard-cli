@@ -11,7 +11,8 @@ import requests
 
 from pipeguard import __version__
 from pipeguard.config import PipeGuardConfig, load_config
-from pipeguard.const import DEFAULT_API_URL
+from pipeguard.const import DEFAULT_API_URL, WORKFLOW_GLOB
+from pipeguard.dataclasses import Finding, Severity
 from pipeguard.license import (
     InvalidLicenseKeyError,
     call_pro_api,
@@ -20,7 +21,6 @@ from pipeguard.license import (
 )
 from pipeguard.output.autofix import apply_fixes
 from pipeguard.output.formatter import Formatter, OutputFormat
-from pipeguard.dataclasses import Finding, Severity
 from pipeguard.scanner.github_actions.action_inventory import check_action_inventory
 from pipeguard.scanner.github_actions.actionlint_runner import run_actionlint
 from pipeguard.scanner.github_actions.cve_check import check_cve
@@ -29,8 +29,6 @@ from pipeguard.scanner.github_actions.pull_request_target import check_pull_requ
 from pipeguard.scanner.github_actions.secrets_flow import check_secrets_flow
 from pipeguard.scanner.github_actions.sha_pinning import check_sha_pinning
 from pipeguard.scanner.github_actions.supply_chain import check_supply_chain
-
-from pipeguard.const import WORKFLOW_GLOB
 
 
 def _collect_workflows(path: str) -> list[Path]:
@@ -145,7 +143,11 @@ def auth(key: str) -> None:
     default=None,
     help="Path to a pipeguard config file (default: auto-detect .pipeguard.yml).",
 )
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed scan progress and finding metadata.")
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    help="Show detailed scan progress and finding metadata.",
+)
 def scan(path: str, output_format: str, fix: bool, config_path: str | None, verbose: bool) -> None:
     """Scan a workflow FILE or DIRECTORY (default: .github/workflows)."""
     config = load_config(Path(config_path).parent if config_path else None)
