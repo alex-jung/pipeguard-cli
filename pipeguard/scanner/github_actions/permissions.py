@@ -6,40 +6,13 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-_VALID_LEVELS = {"read", "write", "none"}
-
-# Actions that legitimately consume an OIDC token.
-_OIDC_ACTIONS = {
-    "aws-actions/configure-aws-credentials",
-    "google-github-actions/auth",
-    "azure/login",
-    "sigstore/cosign-installer",
-    "sigstore/cosign-action",
-    "actions/attest-build-provenance",
-    "actions/attest",
-}
-
-_SENSITIVE_SCOPES = {
-    "actions",
-    "administration",
-    "deployments",
-    "environments",
-    "packages",
-    "pages",
-    "repository-projects",
-    "secrets",
-    "security-events",
-    "statuses",
-    "workflows",
-}
-
-_IMPLICIT_DEFAULT_MESSAGE = (
-    "No top-level 'permissions:' key found. "
-    "GitHub grants write access to most scopes by default — "
-    "add 'permissions: read-all' or scope explicitly."
+from pipeguard.const import (
+    IMPLICIT_PERMISSIONS_MESSAGE,
+    OIDC_ACTIONS,
+    SENSITIVE_SCOPES,
+    VALID_PERMISSION_LEVELS,
 )
+from pipeguard.dataclasses import Finding, Severity
 
 
 def check_permissions(workflow_path: str) -> list[Finding]:
@@ -57,11 +30,11 @@ def check_permissions(workflow_path: str) -> list[Finding]:
         findings.append(
             Finding(
                 rule="permissions-missing",
-                message=_IMPLICIT_DEFAULT_MESSAGE,
+                message=IMPLICIT_PERMISSIONS_MESSAGE,
                 file=workflow_path,
                 line=1,
                 col=0,
-                severity="error",
+                severity=Severity.ERROR,
                 fix_suggestion="Add 'permissions: read-all' at the top level, then grant only what each job needs.",  # noqa: E501
             )
         )
@@ -77,7 +50,7 @@ def check_permissions(workflow_path: str) -> list[Finding]:
                 file=workflow_path,
                 line=_find_line(lines, "write-all"),
                 col=0,
-                severity="error",
+                severity=Severity.ERROR,
                 fix_suggestion="Replace with 'permissions: read-all' and add write scopes only where needed.",  # noqa: E501
             )
         )
@@ -102,7 +75,7 @@ def check_permissions(workflow_path: str) -> list[Finding]:
                     file=workflow_path,
                     line=_find_line(lines, "write-all"),
                     col=0,
-                    severity="error",
+                    severity=Severity.ERROR,
                     fix_suggestion=f"Scope job '{job_id}' permissions to only what it needs.",
                 )
             )
@@ -122,7 +95,7 @@ def _check_scope_dict(
 ) -> list[Finding]:
     findings: list[Finding] = []
     for scope, level in perms.items():
-        if level not in _VALID_LEVELS:
+        if level not in VALID_PERMISSION_LEVELS:
             findings.append(
                 Finding(
                     rule="permissions-invalid",
@@ -130,13 +103,13 @@ def _check_scope_dict(
                     file=workflow_path,
                     line=_find_line(lines, scope),
                     col=0,
-                    severity="error",
+                    severity=Severity.ERROR,
                     fix_suggestion="Use one of: read, write, none.",
                 )
             )
             continue
 
-        if level == "write" and scope in _SENSITIVE_SCOPES:
+        if level == "write" and scope in SENSITIVE_SCOPES:
             findings.append(
                 Finding(
                     rule="permissions-excessive",
@@ -144,7 +117,7 @@ def _check_scope_dict(
                     file=workflow_path,
                     line=_find_line(lines, scope),
                     col=0,
-                    severity="warning",
+                    severity=Severity.WARNING,
                     fix_suggestion=f"Set '{scope}: read' or '{scope}: none' unless write access is explicitly required.",  # noqa: E501
                 )
             )
@@ -157,7 +130,7 @@ def _steps_use_oidc(steps: list[object]) -> bool:
         uses = step.get("uses", "") if isinstance(step, dict) else ""
         if uses:
             action = uses.split("@")[0].lower()
-            if action in _OIDC_ACTIONS:
+            if action in OIDC_ACTIONS:
                 return True
     return False
 
@@ -189,7 +162,7 @@ def _check_id_token_write(
                     file=workflow_path,
                     line=_find_line(lines, "id-token"),
                     col=0,
-                    severity="warning",
+                    severity=Severity.WARNING,
                     fix_suggestion=(
                         "Remove 'id-token: write' or move it to the job that uses "
                         "an OIDC action (e.g. aws-actions/configure-aws-credentials)."
@@ -220,7 +193,7 @@ def _check_id_token_write(
                     file=workflow_path,
                     line=_find_line(lines, "id-token"),
                     col=0,
-                    severity="warning",
+                    severity=Severity.WARNING,
                     fix_suggestion=(
                         f"Remove 'id-token: write' from job '{job_id}' or add an OIDC action "
                         "(e.g. aws-actions/configure-aws-credentials)."

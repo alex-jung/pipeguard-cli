@@ -6,12 +6,10 @@ import json
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from rich import box
 from rich.console import Console
-from rich.table import Table
 
 if TYPE_CHECKING:
-    from pipeguard.scanner.base import Finding
+    from pipeguard.dataclasses import Finding
 
 
 class OutputFormat(StrEnum):
@@ -21,9 +19,20 @@ class OutputFormat(StrEnum):
 
 
 class Formatter:
-    def __init__(self, fmt: OutputFormat = OutputFormat.TERMINAL) -> None:
+    def __init__(
+        self,
+        fmt: OutputFormat = OutputFormat.TERMINAL,
+        show_fix: bool = False,
+        verbose: bool = False,
+    ) -> None:
         self.fmt = fmt
-        self._console = Console()
+        self.show_fix = show_fix
+        self.verbose = verbose
+        import shutil
+
+        self._console = Console(
+            width=max(shutil.get_terminal_size(fallback=(200, 24)).columns, 200)
+        )
 
     def render(self, findings: list[Finding], workflow_path: str) -> None:
         match self.fmt:
@@ -38,34 +47,54 @@ class Formatter:
     # Terminal
     # ------------------------------------------------------------------
 
+    _SEV_ICON: dict[str, tuple[str, str]] = {
+        "error":   ("✗", "red"),
+        "warning": ("⚠", "yellow"),
+        "info":    ("·", "blue"),
+    }
+
     def _render_terminal(self, findings: list[Finding], workflow_path: str) -> None:
-        self._console.print(f"\n[bold]Scanning:[/bold] {workflow_path}")
+        self._console.print(f"\n[bold]{workflow_path}[/bold]")
         if not findings:
             self._console.print("[green]  ✓ No issues found[/green]")
             return
 
-        table = Table(box=box.ROUNDED, show_lines=True, expand=False)
-        table.add_column("Severity", style="bold", width=9, no_wrap=True)
-        table.add_column("Rule", style="cyan", width=22, no_wrap=True)
-        table.add_column("Location", width=26, no_wrap=True)
-        table.add_column("Message", max_width=60)
-
         for f in findings:
-            sev_style = {"error": "red", "warning": "yellow", "info": "blue"}.get(
-                f.severity, "white"
+            icon, sev_style = self._SEV_ICON.get(f.severity, ("·", "white"))
+            score_tag = (
+                f" [magenta][{f.score}/100][/magenta]"
+                if self.verbose and f.score is not None
+                else ""
             )
-            table.add_row(
-                f"[{sev_style}]{f.severity}[/{sev_style}]",
-                f.rule,
-                f"{f.file}:{f.line}",
-                f.message + (f"\n[dim]Fix: {f.fix_suggestion}[/dim]" if f.fix_suggestion else ""),
+            self._console.print(
+                f"  [{sev_style}]{icon} {f.severity:<8}[/{sev_style}]"
+                f"  [cyan]{f.rule:<28}[/cyan]"
+                f"  [dim]line {f.line:>4}[/dim]"
+                f"{score_tag}"
+                f"  {f.message}"
             )
+            if self.show_fix and f.fix_suggestion:
+                self._console.print(f"             [dim]↳[/dim] [green]{f.fix_suggestion}[/green]")
+            if self.verbose:
+                self._render_finding_detail(f)
 
-        self._console.print(table)
+        errors = sum(1 for f in findings if f.severity == "error")
+        warnings = sum(1 for f in findings if f.severity == "warning")
+        color = "red" if errors else "yellow"
         self._console.print(
-            f"\n[bold]{'[red]' if any(f.severity == 'error' for f in findings) else '[yellow]'}"
-            f"{len(findings)} issue(s) found.[/bold]"
+            f"\n  [{color}]{len(findings)} issue(s) found "
+            f"({errors} error(s), {warnings} warning(s))[/{color}]"
         )
+
+    def _render_finding_detail(self, f: Finding) -> None:
+        """Print detail chain and patch for a single finding (verbose mode)."""
+        if f.detail:
+            for line in f.detail:
+                self._console.print(f"             [dim]│  {line}[/dim]")
+        if f.patch:
+            self._console.print("             [dim]│[/dim]  [green]patch:[/green]")
+            for line in f.patch.splitlines():
+                self._console.print(f"             [dim]│[/dim]    [green]{line}[/green]")
 
     # ------------------------------------------------------------------
     # JSON
@@ -81,6 +110,9 @@ class Formatter:
                 "line": f.line,
                 "col": f.col,
                 "fix_suggestion": f.fix_suggestion,
+                "patch": f.patch,
+                "score": f.score,
+                "detail": f.detail,
             }
             for f in findings
         ]

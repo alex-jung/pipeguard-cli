@@ -2,39 +2,23 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import yaml
 
-from pipeguard.scanner.base import Finding
-
-# Patterns that suggest a secret value is being echoed or logged.
-_LEAK_PATTERNS = [
-    re.compile(r"echo\s+\$\{\{\s*secrets\.", re.IGNORECASE),
-    re.compile(r"echo\s+\$[A-Z_]+_TOKEN", re.IGNORECASE),
-    re.compile(r"curl\s+.*-H\s+['\"]Authorization", re.IGNORECASE),
-]
-
-# Patterns that enable bash/sh debug mode (prints every expanded command).
-_SET_X_PATTERNS = [
-    re.compile(r"set\s+-[a-z]*x", re.IGNORECASE),   # set -x, set -ex, set -euxo pipefail …
-    re.compile(r"set\s+-o\s+xtrace", re.IGNORECASE),  # set -o xtrace
-    re.compile(r"#!.*sh\b.*-[a-z]*x", re.IGNORECASE), # #!/bin/bash -x shebang
-]
-
-_SECRETS_REF = re.compile(r"\$\{\{\s*secrets\.", re.IGNORECASE)
+from pipeguard.const import SECRETS_LEAK_PATTERNS, SECRETS_REF_RE, SECRETS_SET_X_PATTERNS
+from pipeguard.dataclasses import Finding, Severity
 
 
 def _env_has_secrets(env: object) -> bool:
     """Return True if an env mapping references any secret."""
     if not isinstance(env, dict):
         return False
-    return any(_SECRETS_REF.search(str(v)) for v in env.values())
+    return any(SECRETS_REF_RE.search(str(v)) for v in env.values())
 
 
 def _has_set_x(run_block: str) -> bool:
-    return any(p.search(run_block) for p in _SET_X_PATTERNS)
+    return any(p.search(run_block) for p in SECRETS_SET_X_PATTERNS)
 
 
 def check_secrets_flow(workflow_path: str) -> list[Finding]:
@@ -51,7 +35,7 @@ def check_secrets_flow(workflow_path: str) -> list[Finding]:
             run_block = step.get("run", "") if isinstance(step, dict) else ""
             if not run_block:
                 continue
-            for pattern in _LEAK_PATTERNS:
+            for pattern in SECRETS_LEAK_PATTERNS:
                 if pattern.search(run_block):
                     snippet = run_block.splitlines()[0]
                     line_no = next(
@@ -65,7 +49,7 @@ def check_secrets_flow(workflow_path: str) -> list[Finding]:
                             file=workflow_path,
                             line=line_no,
                             col=0,
-                            severity="error",
+                            severity=Severity.ERROR,
                             fix_suggestion="Use add-mask or avoid echoing secret values directly.",
                         )
                     )
@@ -125,7 +109,7 @@ def check_debug_leak(
                         file=workflow_path,
                         line=line_no,
                         col=0,
-                        severity="error",
+                        severity=Severity.ERROR,
                         fix_suggestion=(
                             "Remove 'set -x' or add "
                             "\"echo '::add-mask::$SECRET_NAME'\" before enabling debug mode."
@@ -144,7 +128,7 @@ def check_debug_leak(
                         file=workflow_path,
                         line=line_no,
                         col=0,
-                        severity="warning",
+                        severity=Severity.WARNING,
                         fix_suggestion=(
                             "Avoid 'set -x' in CI run steps. "
                             "Use 'set -euo pipefail' for strict mode without debug output."

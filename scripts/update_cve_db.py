@@ -109,8 +109,12 @@ def update_readme_date(text: str) -> str:
 
 
 def update_readme(readme_path: Path, records: list[dict[str, object]]) -> bool:
-    """Replace the CVE table section in README.md. Returns True if changed."""
-    text = update_readme_date(readme_path.read_text())
+    """Replace the CVE table section and update the date in README.md.
+
+    Always writes the file. Returns True if content changed.
+    """
+    original = readme_path.read_text()
+    text = update_readme_date(original)
     start = text.find(_README_START)
     end = text.find(_README_END)
     if start == -1 or end == -1:
@@ -118,14 +122,13 @@ def update_readme(readme_path: Path, records: list[dict[str, object]]) -> bool:
             "[update-cve-db] WARNING: CVE table markers not found in README — skipping.",
             file=sys.stderr,
         )
-        return False
+        readme_path.write_text(text)
+        return text != original
 
     new_block = f"{_README_START}\n{build_cve_table(records)}\n{_README_END}"
     new_text = text[: start] + new_block + text[end + len(_README_END) :]
-    if new_text == text:
-        return False
     readme_path.write_text(new_text)
-    return True
+    return new_text != original
 
 
 def main() -> None:

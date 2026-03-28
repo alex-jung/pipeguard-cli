@@ -12,6 +12,7 @@ import yaml
 class PipeGuardConfig:
     trusted_publishers: list[str] = field(default_factory=list)
     trusted_actions: list[str] = field(default_factory=list)
+    api_url: str | None = None  # overrides DEFAULT_API_URL and PIPEGUARD_API_URL env var
 
 
 _CONFIG_FILENAMES = (".pipeguard.yml", ".pipeguard.yaml", "pipeguard.yml", "pipeguard.yaml")
@@ -50,7 +51,10 @@ def _parse(path: Path) -> PipeGuardConfig:
     # Normalise: publisher prefixes must end with "/"
     normalised = [p if p.endswith("/") else p + "/" for p in publishers]
 
+    api_url = data.get("api_url")
+
     return PipeGuardConfig(
         trusted_publishers=normalised,
         trusted_actions=[str(a) for a in actions],
+        api_url=str(api_url) if api_url else None,
     )
