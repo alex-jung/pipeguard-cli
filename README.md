@@ -113,7 +113,7 @@ pipeguard scan --format sarif
 # Use a custom config file
 pipeguard scan --config path/to/.pipeguard.yml
 
-# Run only specific scanner(s) — ignores config file, always runs locally
+# Run only specific scanner(s) — always runs locally
 pipeguard scan --scanner sha-pinning
 pipeguard scan --scanner sha-pinning --scanner cve
 ```
