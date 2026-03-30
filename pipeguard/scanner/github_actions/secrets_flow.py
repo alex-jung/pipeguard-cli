@@ -8,6 +8,7 @@ import yaml
 
 from pipeguard.const import SECRETS_LEAK_PATTERNS, SECRETS_REF_RE, SECRETS_SET_X_PATTERNS
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def _env_has_secrets(env: object) -> bool:
@@ -57,6 +58,11 @@ def check_secrets_flow(workflow_path: str) -> list[Finding]:
 
     findings += check_debug_leak(workflow_path, data, lines)
     return findings
+
+
+class SecretsFlowScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_secrets_flow(workflow_path)
 
 
 def check_debug_leak(

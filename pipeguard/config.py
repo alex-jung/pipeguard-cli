@@ -9,10 +9,25 @@ import yaml
 
 
 @dataclass
-class PipeGuardConfig:
+class ScannerConfig:
+    skip: bool = False
+
+
+@dataclass
+class SupplyChainScannerConfig(ScannerConfig):
     trusted_publishers: list[str] = field(default_factory=list)
     trusted_actions: list[str] = field(default_factory=list)
-    api_url: str | None = None  # overrides DEFAULT_API_URL and PIPEGUARD_API_URL env var
+
+
+@dataclass
+class CveScannerConfig(ScannerConfig):
+    min_cvss: float = 9.0
+
+
+@dataclass
+class PipeGuardConfig:
+    api_url: str | None = None
+    scanners: dict[str, ScannerConfig] = field(default_factory=dict)
 
 
 _CONFIG_FILENAMES = (".pipeguard.yml", ".pipeguard.yaml", "pipeguard.yml", "pipeguard.yaml")
@@ -40,21 +55,38 @@ def _parse(path: Path) -> PipeGuardConfig:
     if not isinstance(data, dict):
         return PipeGuardConfig()
 
-    publishers = data.get("trusted_publishers", [])
-    actions = data.get("trusted_actions", [])
-
-    if not isinstance(publishers, list):
-        publishers = []
-    if not isinstance(actions, list):
-        actions = []
-
-    # Normalise: publisher prefixes must end with "/"
-    normalised = [p if p.endswith("/") else p + "/" for p in publishers]
-
     api_url = data.get("api_url")
+    scanners: dict[str, ScannerConfig] = {}
+
+    for name, scanner_data in (data.get("scanners") or {}).items():
+        if not isinstance(scanner_data, dict):
+            scanners[name] = ScannerConfig()
+            continue
+
+        skip = bool(scanner_data.get("skip", False))
+
+        if name == "supply-chain":
+            publishers = scanner_data.get("trusted_publishers") or []
+            actions = scanner_data.get("trusted_actions") or []
+            if not isinstance(publishers, list):
+                publishers = []
+            if not isinstance(actions, list):
+                actions = []
+            normalised = [p if p.endswith("/") else p + "/" for p in publishers]
+            scanners[name] = SupplyChainScannerConfig(
+                skip=skip,
+                trusted_publishers=normalised,
+                trusted_actions=[str(a) for a in actions],
+            )
+        elif name == "cve":
+            scanners[name] = CveScannerConfig(
+                skip=skip,
+                min_cvss=float(scanner_data.get("min_cvss", 9.0)),
+            )
+        else:
+            scanners[name] = ScannerConfig(skip=skip)
 
     return PipeGuardConfig(
-        trusted_publishers=normalised,
-        trusted_actions=[str(a) for a in actions],
         api_url=str(api_url) if api_url else None,
+        scanners=scanners,
     )

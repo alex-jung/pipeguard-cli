@@ -10,7 +10,7 @@ import click
 import requests
 
 from pipeguard import __version__
-from pipeguard.config import PipeGuardConfig, load_config
+from pipeguard.config import PipeGuardConfig, SupplyChainScannerConfig, load_config
 from pipeguard.const import DEFAULT_API_URL, WORKFLOW_GLOB
 from pipeguard.dataclasses import Finding, Severity
 from pipeguard.license import (
@@ -21,14 +21,14 @@ from pipeguard.license import (
 )
 from pipeguard.output.autofix import apply_fixes
 from pipeguard.output.formatter import Formatter, OutputFormat
-from pipeguard.scanner.github_actions.action_inventory import check_action_inventory
-from pipeguard.scanner.github_actions.actionlint_runner import run_actionlint
-from pipeguard.scanner.github_actions.cve_check import check_cve
-from pipeguard.scanner.github_actions.permissions import check_permissions
-from pipeguard.scanner.github_actions.pull_request_target import check_pull_request_target
-from pipeguard.scanner.github_actions.secrets_flow import check_secrets_flow
-from pipeguard.scanner.github_actions.sha_pinning import check_sha_pinning
-from pipeguard.scanner.github_actions.supply_chain import check_supply_chain
+from pipeguard.scanner.github_actions.action_inventory import ActionInventoryScanner
+from pipeguard.scanner.github_actions.actionlint_runner import ActionlintScanner
+from pipeguard.scanner.github_actions.cve_check import CveScanner
+from pipeguard.scanner.github_actions.permissions import PermissionsScanner
+from pipeguard.scanner.github_actions.pull_request_target import PullRequestTargetScanner
+from pipeguard.scanner.github_actions.secrets_flow import SecretsFlowScanner
+from pipeguard.scanner.github_actions.sha_pinning import ShaPinningScanner
+from pipeguard.scanner.github_actions.supply_chain import SupplyChainScanner
 
 
 def _collect_workflows(path: str) -> list[Path]:
@@ -64,40 +64,49 @@ def _scan_file(
     verbose: bool = False,
     api_url: str = DEFAULT_API_URL,
 ) -> list[Finding]:
-    findings: list[Finding] = []
-
-    _free_scanners: list[tuple[str, list[Finding]]] = [
-        ("actionlint",          run_actionlint(str(workflow))),
-        ("sha-pinning",         check_sha_pinning(str(workflow))),
-        ("secrets-flow",        check_secrets_flow(str(workflow))),
-        ("supply-chain",        check_supply_chain(str(workflow), config)),
-        ("permissions",         check_permissions(str(workflow))),
-        ("pull-request-target", check_pull_request_target(str(workflow))),
-        ("cve",                 check_cve(str(workflow))),
-        ("action-inventory",    check_action_inventory(str(workflow))),
-    ]
-
-    for name, results in _free_scanners:
-        findings += results
-        icon = "✓" if not results else "!"
-        _vlog(f"  {icon} {name:<22} {len(results)} finding(s)", verbose)
-
-    # Pro — send workflow to backend, merge findings
+    # Pro — skip free scanners, send everything to Pro API (Option A)
     if license_key:
         _vlog(f"  → Pro API: {api_url}/v1/analyze", verbose)
         pro_findings = call_pro_api(
             str(workflow),
             license_key,
-            trusted_publishers=config.trusted_publishers if config else [],
-            trusted_actions=config.trusted_actions if config else [],
+            config=config,
             api_url=api_url,
             verbose=verbose,
         )
         if pro_findings is not None:
-            findings += pro_findings
             _vlog(f"  ← Pro API: {len(pro_findings)} finding(s) received", verbose)
-        else:
-            _vlog("  ✗ Pro API: request failed (skipping Pro checks)", verbose)
+            return pro_findings
+        _vlog("  ✗ Pro API: request failed — falling back to free scanners", verbose)
+
+    # Free — run local scanners, respect skip config per scanner
+    def _cfg(name: str) -> object:
+        return config.scanners.get(name) if config else None
+
+    supply_chain_cfg = _cfg("supply-chain")
+    if not isinstance(supply_chain_cfg, SupplyChainScannerConfig):
+        supply_chain_cfg = None
+
+    _free_scanners = [
+        ("actionlint",          ActionlintScanner(_cfg("actionlint"))),             # type: ignore[arg-type]
+        ("sha-pinning",         ShaPinningScanner(_cfg("sha-pinning"))),            # type: ignore[arg-type]
+        ("secrets-flow",        SecretsFlowScanner(_cfg("secrets-flow"))),          # type: ignore[arg-type]
+        ("supply-chain",        SupplyChainScanner(supply_chain_cfg)),
+        ("permissions",         PermissionsScanner(_cfg("permissions"))),           # type: ignore[arg-type]
+        ("pull-request-target", PullRequestTargetScanner(_cfg("pull-request-target"))),  # type: ignore[arg-type]
+        ("cve",                 CveScanner(_cfg("cve"))),                           # type: ignore[arg-type]
+        ("action-inventory",    ActionInventoryScanner(_cfg("action-inventory"))),  # type: ignore[arg-type]
+    ]
+
+    findings: list[Finding] = []
+    for name, scanner in _free_scanners:
+        if scanner.config.skip:
+            _vlog(f"  · {name:<22} skipped", verbose)
+            continue
+        results = scanner.check(str(workflow))
+        findings += results
+        icon = "✓" if not results else "!"
+        _vlog(f"  {icon} {name:<22} {len(results)} finding(s)", verbose)
 
     return findings
 
@@ -162,10 +171,9 @@ def scan(path: str, output_format: str, fix: bool, config_path: str | None, verb
 
     _vlog(f"Found {len(workflows)} workflow file(s) in '{path}'", verbose)
 
-    if config:
+    if config and config.scanners:
         _vlog(
-            f"Config loaded — trusted publishers: {len(config.trusted_publishers)}, "
-            f"trusted actions: {len(config.trusted_actions)}"
+            f"Config loaded — {len(config.scanners)} scanner(s) configured"
             + (f", api_url: {config.api_url}" if config.api_url else ""),
             verbose,
         )

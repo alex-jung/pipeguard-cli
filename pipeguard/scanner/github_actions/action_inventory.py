@@ -9,6 +9,7 @@ import yaml
 
 from pipeguard.const import USES_RE
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def check_action_inventory(workflow_path: str) -> list[Finding]:
@@ -55,3 +56,8 @@ def check_action_inventory(workflow_path: str) -> list[Finding]:
             )
         )
     return findings
+
+
+class ActionInventoryScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_action_inventory(workflow_path)

@@ -8,6 +8,7 @@ import yaml
 
 from pipeguard.const import HEAD_REF_PATTERNS
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def _uses_head_ref(value: str) -> bool:
@@ -100,3 +101,8 @@ def check_pull_request_target(workflow_path: str) -> list[Finding]:
             ),
         )
     ]
+
+
+class PullRequestTargetScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_pull_request_target(workflow_path)

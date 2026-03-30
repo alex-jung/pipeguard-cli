@@ -8,6 +8,7 @@ import yaml
 
 from pipeguard.const import SHA_RE, USES_RE
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def check_sha_pinning(workflow_path: str) -> list[Finding]:
@@ -83,3 +84,8 @@ def _check_uses(
             fix_suggestion=fix,
         )
     ]
+
+
+class ShaPinningScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_sha_pinning(workflow_path)
