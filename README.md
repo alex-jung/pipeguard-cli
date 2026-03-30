@@ -117,18 +117,19 @@ pipeguard scan --config path/to/.pipeguard.yml
 When scanning a directory, pipeguard prints a per-file header and a summary at the end:
 
 ```
-Scanning: .github/workflows/ci.yml
+.github/workflows/ci.yml
   ✓ No issues found
 
-Scanning: .github/workflows/deploy.yml
-  ╭─────────┬──────────────────┬──────────────────────────┬──────────────╮
-  │ Severity│ Rule             │ Location                 │ Message      │
-  ├─────────┼──────────────────┼──────────────────────────┼──────────────┤
-  │ error   │ cve-cve-2025-... │ deploy.yml:12            │ Action ...   │
-  │ error   │ sha-pinning      │ deploy.yml:15            │ Action ...   │
-  ╰─────────┴──────────────────┴──────────────────────────┴──────────────╯
+.github/workflows/deploy.yml
+  ✗ error     sha-pinning               line   12  Action 'actions/checkout' is pinned to 'v3' instead of a full commit SHA.
+  ✗ error     cve-cve-2025-30066        line   15  Action 'tj-actions/changed-files@v35' is affected by CVE-2025-30066: ...
+  ⚠ warning   supply-chain              line   15  Untrusted action 'tj-actions/changed-files' — verify publisher and pin to a SHA.
+  ✗ error     permissions-missing       line    1  No top-level 'permissions:' key found.
+  · info      action-inventory          line   12  Action 'actions/checkout' used with ref(s): 'v3' (1 occurrence(s)).
 
-Scanned 2 file(s) — 2 error(s), 1 warning(s), 3 info(s) total.
+  5 issue(s) found (3 error(s), 1 warning(s))
+
+Scanned 2 file(s) — 3 error(s), 1 warning(s), 1 info(s) total.
 ```
 
 ### Exit codes
@@ -137,8 +138,18 @@ Scanned 2 file(s) — 2 error(s), 1 warning(s), 3 info(s) total.
 |------|---------|
 | `0`  | No errors or warnings |
 | `1`  | One or more errors or warnings found |
+| `2`  | Invalid or expired Pro license key |
 
 Info-level findings (action inventory) do not affect the exit code.
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--format terminal\|json\|sarif` | Output format (default: `terminal`) |
+| `--fix` | Apply auto-fixes via Pro API (requires license key) |
+| `--config PATH` | Path to a `.pipeguard.yml` config file |
+| `--verbose` / `-v` | Show per-scanner progress and Pro API response |
 
 ---
 
@@ -202,23 +213,36 @@ pip install --upgrade pipeguard-cli
 
 PipeGuard looks for a `.pipeguard.yml` (or `.pipeguard.yaml`, `pipeguard.yml`, `pipeguard.yaml`) in the current directory and its parents.
 
-### Suppress `supply-chain` warnings for trusted publishers
-
-If you trust a specific publisher or action, add them to the allowlist:
+All scanner settings live under a `scanners:` key. Each scanner can be configured independently:
 
 ```yaml
 # .pipeguard.yml
-trusted_publishers:
-  - my-org           # suppresses all warnings for my-org/*
-  - some-vendor      # suppresses all warnings for some-vendor/*
 
-trusted_actions:
-  - other-org/specific-action  # suppresses warning for this exact action only
+scanners:
+  # Disable a scanner entirely
+  supply-chain:
+    skip: false                 # default; set to true to disable
+    trusted_publishers:
+      - my-org                  # suppresses warnings for my-org/*
+      - some-vendor
+    trusted_actions:
+      - other-org/specific-action  # exact match, without @ref
+
+  # Lower the CVE severity threshold (default: 9.0)
+  cve:
+    min_cvss: 7.0
+
+  # Skip a scanner entirely
+  actionlint:
+    skip: true
 ```
+
+**Scanner names:** `sha-pinning`, `supply-chain`, `cve`, `permissions`, `secrets-flow`, `pull-request-target`, `actionlint`, `action-inventory`.
 
 - `trusted_publishers` matches as a prefix — every action from `my-org/*` is considered trusted.
 - `trusted_actions` requires an exact match on the action name (without the `@ref`).
 - A trailing `/` in publisher names is optional; PipeGuard normalises it automatically.
+- Scanners not listed in the config file run with their defaults.
 
 The built-in allowlist (GitHub, AWS, Azure, Google, Docker, HashiCorp, etc.) is always active and cannot be removed.
 
@@ -261,27 +285,59 @@ repos:
 ```json
 [
   {
+    "id": "a1b2c3d4e5f6",
     "rule": "cve-cve-2025-30066",
     "severity": "error",
     "message": "Action 'tj-actions/changed-files@v35' is affected by CVE-2025-30066: ...",
     "file": ".github/workflows/ci.yml",
     "line": 12,
-    "fix_suggestion": "Immediately pin 'tj-actions/changed-files' to a verified safe SHA."
+    "col": 0,
+    "fix_suggestion": "Immediately pin 'tj-actions/changed-files' to a verified safe SHA.",
+    "patch": null,
+    "score": null,
+    "detail": null
   }
 ]
 ```
 
+Each finding has a stable `id` (`sha256(rule:line:message)[:12]`) — valid within one scan session. Use it to reference specific findings when calling the Pro API for auto-fixes.
+
 **SARIF** — compatible with GitHub Code Scanning.
+
+---
+
+## PipeGuard Pro
+
+PipeGuard Pro extends the free CLI with deeper analysis and auto-fix capabilities via a cloud API.
+
+### Activate a license key
+
+```bash
+pipeguard auth <your-license-key>
+```
+
+The key is stored in `~/.pipeguard/credentials` and picked up automatically on every `pipeguard scan`. You can also set it via the environment:
+
+```bash
+export PIPEGUARD_LICENSE_KEY=<your-license-key>
+```
+
+### How Pro mode works
+
+When a license key is present, **all scanning is handled by the Pro API** — free local scanners are skipped entirely. The Pro API runs the same free checks plus additional deep-analysis scanners, and returns findings with optional `patch` and `score` fields.
+
+If the Pro API is unreachable or returns an error, PipeGuard automatically falls back to the free local scanners.
+
+### Auto-fix
+
+```bash
+pipeguard scan --fix
+```
+
+Sends findings with available patches back to the Pro API (`POST /v1/fix`). The patched workflow is written back to disk. Applied and skipped counts are printed at the end.
 
 ---
 
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
-
-## Status
-
-In active development. All Free-tier scanners are functional.
-Planned: auto-fix PRs (Pro), Maintainer Trust Score (Pro), cloud sandbox testing, IDE plugin.
-
-Free-tier checks: SHA-pinning, CVE database, permissions audit (incl. `id-token: write` without OIDC), secrets-leak detection, action inventory, actionlint syntax checks.
