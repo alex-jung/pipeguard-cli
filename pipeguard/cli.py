@@ -91,6 +91,7 @@ def _scan_file(
             trusted_publishers=config.trusted_publishers if config else [],
             trusted_actions=config.trusted_actions if config else [],
             api_url=api_url,
+            verbose=verbose,
         )
         if pro_findings is not None:
             findings += pro_findings
@@ -210,3 +211,7 @@ def scan(path: str, output_format: str, fix: bool, config_path: str | None, verb
 
     if any(f.severity in (Severity.ERROR, Severity.WARNING) for f in all_findings):
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

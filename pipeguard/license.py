@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 import requests
@@ -37,6 +38,7 @@ def call_pro_api(
     trusted_publishers: list[str] | None = None,
     trusted_actions: list[str] | None = None,
     api_url: str | None = None,
+    verbose: bool = False,
 ) -> list[Finding] | None:
     """Send workflow to Pro backend. Returns findings or None on error.
 
@@ -62,6 +64,13 @@ def call_pro_api(
         )
     except requests.RequestException:
         return None
+
+    if verbose:
+        print(  # noqa: T201
+            f"[pipeguard] Pro API response ({resp.status_code}):\n"
+            + json.dumps(resp.json(), indent=2),
+            file=sys.stderr,
+        )
 
     if resp.status_code == 401:
         raise InvalidLicenseKeyError(resp.json().get("error", "Invalid license key."))
