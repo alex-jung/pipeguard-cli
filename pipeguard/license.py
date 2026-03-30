@@ -37,20 +37,28 @@ def save_license_key(key: str) -> None:
 
 
 def _serialize_config(config: PipeGuardConfig | None) -> dict[str, object]:
-    """Serialize scanner config for the Pro API request body."""
+    """Serialize scanner config for the Pro API request body.
+
+    Only fields that differ from their defaults are included so the payload
+    stays minimal and the backend can apply its own defaults for anything
+    that is not present.
+    """
     if config is None:
         return {}
     scanners: dict[str, object] = {}
     for name, sc in config.scanners.items():
-        entry: dict[str, object] = {"skip": sc.skip}
-        if hasattr(sc, "trusted_publishers"):
+        entry: dict[str, object] = {}
+        if sc.skip:
+            entry["skip"] = True
+        if hasattr(sc, "trusted_publishers") and sc.trusted_publishers:
             entry["trusted_publishers"] = sc.trusted_publishers
-        if hasattr(sc, "trusted_actions"):
+        if hasattr(sc, "trusted_actions") and sc.trusted_actions:
             entry["trusted_actions"] = sc.trusted_actions
-        if hasattr(sc, "min_cvss"):
+        if hasattr(sc, "min_cvss") and sc.min_cvss != 9.0:
             entry["min_cvss"] = sc.min_cvss
-        scanners[name] = entry
-    return {"scanners": scanners}
+        if entry:
+            scanners[name] = entry
+    return {"scanners": scanners} if scanners else {}
 
 
 def call_pro_api(
