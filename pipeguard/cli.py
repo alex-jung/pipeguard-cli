@@ -21,6 +21,7 @@ from pipeguard.license import (
 )
 from pipeguard.output.autofix import apply_fixes
 from pipeguard.output.formatter import Formatter, OutputFormat
+from pipeguard.scanner.base import BaseScanner
 from pipeguard.scanner.github_actions.action_inventory import ActionInventoryScanner
 from pipeguard.scanner.github_actions.actionlint_runner import ActionlintScanner
 from pipeguard.scanner.github_actions.cve_check import CveScanner
@@ -57,15 +58,61 @@ def _resolve_api_url(config: PipeGuardConfig | None) -> str:
     )
 
 
+SCANNER_NAMES = (
+    "actionlint",
+    "sha-pinning",
+    "secrets-flow",
+    "supply-chain",
+    "permissions",
+    "pull-request-target",
+    "cve",
+    "action-inventory",
+)
+
+
+def _build_free_scanners(
+    config: PipeGuardConfig | None,
+    only: tuple[str, ...] | None = None,
+) -> list[tuple[str, BaseScanner]]:
+    """Return (name, scanner) pairs.
+
+    When *only* is given, build only those scanners with default configs
+    (ignoring any config file settings).
+    """
+    def _cfg(name: str) -> object:
+        return config.scanners.get(name) if config else None
+
+    supply_chain_cfg = _cfg("supply-chain")
+    if not isinstance(supply_chain_cfg, SupplyChainScannerConfig):
+        supply_chain_cfg = None
+
+    all_scanners: list[tuple[str, BaseScanner]] = [
+        ("actionlint",          ActionlintScanner(_cfg("actionlint"))),             # type: ignore[arg-type]
+        ("sha-pinning",         ShaPinningScanner(_cfg("sha-pinning"))),            # type: ignore[arg-type]
+        ("secrets-flow",        SecretsFlowScanner(_cfg("secrets-flow"))),          # type: ignore[arg-type]
+        ("supply-chain",        SupplyChainScanner(supply_chain_cfg)),
+        ("permissions",         PermissionsScanner(_cfg("permissions"))),           # type: ignore[arg-type]
+        ("pull-request-target", PullRequestTargetScanner(_cfg("pull-request-target"))),  # type: ignore[arg-type]
+        ("cve",                 CveScanner(_cfg("cve"))),                           # type: ignore[arg-type]
+        ("action-inventory",    ActionInventoryScanner(_cfg("action-inventory"))),  # type: ignore[arg-type]
+    ]
+
+    if only is not None:
+        return [(n, s) for n, s in all_scanners if n in only]
+    return all_scanners
+
+
 def _scan_file(
     workflow: Path,
     config: PipeGuardConfig | None = None,
     license_key: str | None = None,
     verbose: bool = False,
     api_url: str = DEFAULT_API_URL,
+    only_scanners: tuple[str, ...] | None = None,
 ) -> list[Finding]:
     # Pro — skip free scanners, send everything to Pro API (Option A)
-    if license_key:
+    # Bypassed when --scanner is used (explicit scanner selection runs locally)
+    if license_key and only_scanners is None:
         _vlog(f"  → Pro API: {api_url}/v1/analyze", verbose)
         pro_findings = call_pro_api(
             str(workflow),
@@ -79,28 +126,12 @@ def _scan_file(
             return pro_findings
         _vlog("  ✗ Pro API: request failed — falling back to free scanners", verbose)
 
-    # Free — run local scanners, respect skip config per scanner
-    def _cfg(name: str) -> object:
-        return config.scanners.get(name) if config else None
-
-    supply_chain_cfg = _cfg("supply-chain")
-    if not isinstance(supply_chain_cfg, SupplyChainScannerConfig):
-        supply_chain_cfg = None
-
-    _free_scanners = [
-        ("actionlint",          ActionlintScanner(_cfg("actionlint"))),             # type: ignore[arg-type]
-        ("sha-pinning",         ShaPinningScanner(_cfg("sha-pinning"))),            # type: ignore[arg-type]
-        ("secrets-flow",        SecretsFlowScanner(_cfg("secrets-flow"))),          # type: ignore[arg-type]
-        ("supply-chain",        SupplyChainScanner(supply_chain_cfg)),
-        ("permissions",         PermissionsScanner(_cfg("permissions"))),           # type: ignore[arg-type]
-        ("pull-request-target", PullRequestTargetScanner(_cfg("pull-request-target"))),  # type: ignore[arg-type]
-        ("cve",                 CveScanner(_cfg("cve"))),                           # type: ignore[arg-type]
-        ("action-inventory",    ActionInventoryScanner(_cfg("action-inventory"))),  # type: ignore[arg-type]
-    ]
+    # Free — run local scanners
+    scanners = _build_free_scanners(config, only=only_scanners)
 
     findings: list[Finding] = []
-    for name, scanner in _free_scanners:
-        if scanner.config.skip:
+    for name, scanner in scanners:
+        if only_scanners is None and scanner.config.skip:
             _vlog(f"  · {name:<22} skipped", verbose)
             continue
         results = scanner.check(str(workflow))
@@ -158,8 +189,27 @@ def auth(key: str) -> None:
     is_flag=True,
     help="Show detailed scan progress and finding metadata.",
 )
-def scan(path: str, output_format: str, fix: bool, config_path: str | None, verbose: bool) -> None:
+@click.option(
+    "--scanner",
+    "scanners",
+    multiple=True,
+    type=click.Choice(SCANNER_NAMES),
+    help=(
+        "Run only the specified scanner(s). Can be repeated. "
+        "Respects config file settings (trusted_publishers, min_cvss) "
+        "but overrides skip. Bypasses Pro API — always runs locally."
+    ),
+)
+def scan(
+    path: str,
+    output_format: str,
+    fix: bool,
+    config_path: str | None,
+    verbose: bool,
+    scanners: tuple[str, ...],
+) -> None:
     """Scan a workflow FILE or DIRECTORY (default: .github/workflows)."""
+    only_scanners: tuple[str, ...] | None = scanners if scanners else None
     config = load_config(Path(config_path).parent if config_path else None)
     license_key = resolve_license_key()
     api_url = _resolve_api_url(config)
@@ -171,14 +221,16 @@ def scan(path: str, output_format: str, fix: bool, config_path: str | None, verb
 
     _vlog(f"Found {len(workflows)} workflow file(s) in '{path}'", verbose)
 
-    if config and config.scanners:
+    if only_scanners:
+        _vlog(f"Scanner filter active — running: {', '.join(only_scanners)}", verbose)
+    elif config and config.scanners:
         _vlog(
             f"Config loaded — {len(config.scanners)} scanner(s) configured"
             + (f", api_url: {config.api_url}" if config.api_url else ""),
             verbose,
         )
 
-    if license_key:
+    if license_key and not only_scanners:
         click.echo("[pipeguard] Pro license active — running extended checks.", err=True)
         _vlog(f"Pro API endpoint: {api_url}", verbose)
 
@@ -188,7 +240,10 @@ def scan(path: str, output_format: str, fix: bool, config_path: str | None, verb
     try:
         for workflow in workflows:
             _vlog(f"Scanning: {workflow}", verbose)
-            findings = _scan_file(workflow, config, license_key, verbose, api_url)
+            findings = _scan_file(
+                workflow, config, license_key, verbose, api_url,
+                only_scanners=only_scanners,
+            )
             all_findings.extend(findings)
             fmt.render(findings, str(workflow))
             if fix and license_key:
