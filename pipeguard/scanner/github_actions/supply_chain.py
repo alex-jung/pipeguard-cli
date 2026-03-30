@@ -7,9 +7,10 @@ from pathlib import Path
 
 import yaml
 
-from pipeguard.config import PipeGuardConfig
+from pipeguard.config import SupplyChainScannerConfig
 from pipeguard.const import TRUSTED_PUBLISHERS, USES_RE
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 @dataclass
@@ -19,7 +20,7 @@ class ActionNode:
     trusted: bool
 
 
-def _is_trusted(action: str, config: PipeGuardConfig | None = None) -> bool:
+def _is_trusted(action: str, config: SupplyChainScannerConfig | None = None) -> bool:
     if any(action.startswith(prefix) for prefix in TRUSTED_PUBLISHERS):
         return True
     if config is None:
@@ -32,7 +33,7 @@ def _is_trusted(action: str, config: PipeGuardConfig | None = None) -> bool:
 
 
 def build_dependency_graph(
-    workflow_path: str, config: PipeGuardConfig | None = None
+    workflow_path: str, config: SupplyChainScannerConfig | None = None
 ) -> list[ActionNode]:
     """Return all third-party actions used in the workflow."""
     text = Path(workflow_path).read_text()
@@ -54,7 +55,9 @@ def build_dependency_graph(
     return nodes
 
 
-def check_supply_chain(workflow_path: str, config: PipeGuardConfig | None = None) -> list[Finding]:
+def check_supply_chain(
+    workflow_path: str, config: SupplyChainScannerConfig | None = None
+) -> list[Finding]:
     """Return findings for untrusted third-party actions."""
     text = Path(workflow_path).read_text()
     lines = text.splitlines()
@@ -79,3 +82,12 @@ def check_supply_chain(workflow_path: str, config: PipeGuardConfig | None = None
                 )
             )
     return findings
+
+
+class SupplyChainScanner(BaseScanner):
+    def __init__(self, config: SupplyChainScannerConfig | None = None) -> None:
+        self.config = config or SupplyChainScannerConfig()
+
+    def check(self, workflow_path: str) -> list[Finding]:
+        assert isinstance(self.config, SupplyChainScannerConfig)
+        return check_supply_chain(workflow_path, self.config)

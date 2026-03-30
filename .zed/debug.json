@@ -1,0 +1,21 @@
+[
+    {
+        "label": "pipeguard auth",
+        "adapter": "Debugpy",
+        "request": "launch",
+        "module": "pipeguard.cli",
+        "args": ["auth", "12345"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": { "PIPEGUARD_API_URL": "http://localhost:5000" },
+        "justMyCode": true
+    },
+    {
+        "label": "pipeguard scan .github/workflows",
+        "adapter": "Debugpy",
+        "request": "launch",
+        "module": "pipeguard.cli",
+        "args": ["scan", ".github/workflows"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "justMyCode": true
+    }
+]

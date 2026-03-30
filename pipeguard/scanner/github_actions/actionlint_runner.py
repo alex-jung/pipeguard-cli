@@ -6,6 +6,7 @@ import json
 import subprocess
 
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def run_actionlint(workflow_path: str) -> list[Finding]:
@@ -41,3 +42,8 @@ def run_actionlint(workflow_path: str) -> list[Finding]:
             )
         )
     return findings
+
+
+class ActionlintScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return run_actionlint(workflow_path)

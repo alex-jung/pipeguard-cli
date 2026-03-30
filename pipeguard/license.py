@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import requests
 
 from pipeguard.const import API_TIMEOUT, CREDENTIALS_FILE, DEFAULT_API_URL
 from pipeguard.dataclasses import Finding, Severity
+
+if TYPE_CHECKING:
+    from pipeguard.config import PipeGuardConfig
 
 
 def resolve_license_key() -> str | None:
@@ -31,12 +36,29 @@ def save_license_key(key: str) -> None:
     CREDENTIALS_FILE.write_text(json.dumps({"license_key": key}))
 
 
+def _serialize_config(config: PipeGuardConfig | None) -> dict[str, object]:
+    """Serialize scanner config for the Pro API request body."""
+    if config is None:
+        return {}
+    scanners: dict[str, object] = {}
+    for name, sc in config.scanners.items():
+        entry: dict[str, object] = {"skip": sc.skip}
+        if hasattr(sc, "trusted_publishers"):
+            entry["trusted_publishers"] = sc.trusted_publishers
+        if hasattr(sc, "trusted_actions"):
+            entry["trusted_actions"] = sc.trusted_actions
+        if hasattr(sc, "min_cvss"):
+            entry["min_cvss"] = sc.min_cvss
+        scanners[name] = entry
+    return {"scanners": scanners}
+
+
 def call_pro_api(
     workflow_path: str,
     key: str,
-    trusted_publishers: list[str] | None = None,
-    trusted_actions: list[str] | None = None,
+    config: PipeGuardConfig | None = None,
     api_url: str | None = None,
+    verbose: bool = False,
 ) -> list[Finding] | None:
     """Send workflow to Pro backend. Returns findings or None on error.
 
@@ -55,13 +77,19 @@ def call_pro_api(
             headers={"Authorization": f"Bearer {key}"},
             json={
                 "workflow": workflow_yaml,
-                "trusted_publishers": trusted_publishers or [],
-                "trusted_actions": trusted_actions or [],
+                "config": _serialize_config(config),
             },
             timeout=API_TIMEOUT,
         )
     except requests.RequestException:
         return None
+
+    if verbose:
+        print(  # noqa: T201
+            f"[pipeguard] Pro API response ({resp.status_code}):\n"
+            + json.dumps(resp.json(), indent=2),
+            file=sys.stderr,
+        )
 
     if resp.status_code == 401:
         raise InvalidLicenseKeyError(resp.json().get("error", "Invalid license key."))
@@ -81,6 +109,7 @@ def call_pro_api(
             patch=f.get("patch"),
             score=f.get("score"),
             detail=f.get("detail"),
+            id=f.get("id", ""),
         )
         for f in resp.json().get("findings", [])
     ]

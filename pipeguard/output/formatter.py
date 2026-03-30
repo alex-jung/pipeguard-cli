@@ -103,6 +103,7 @@ class Formatter:
     def _render_json(self, findings: list[Finding]) -> None:
         output = [
             {
+                "id": f.id,
                 "rule": f.rule,
                 "severity": f.severity,
                 "message": f.message,

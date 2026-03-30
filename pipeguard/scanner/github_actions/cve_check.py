@@ -8,8 +8,10 @@ from typing import TypedDict
 
 import yaml
 
+from pipeguard.config import CveScannerConfig
 from pipeguard.const import SHA_RE, USES_RE
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 _CVE_DB_PATH = Path(__file__).parent / "cve_db.json"
 
@@ -83,3 +85,11 @@ def check_cve(workflow_path: str) -> list[Finding]:
                     )
                 )
     return findings
+
+
+class CveScanner(BaseScanner):
+    def __init__(self, config: CveScannerConfig | None = None) -> None:
+        super().__init__(config)
+
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_cve(workflow_path)

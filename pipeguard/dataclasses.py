@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import hashlib
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 
@@ -24,3 +25,9 @@ class Finding:
     patch: str | None = None           # machine-applicable YAML fix (Pro: SHA-Pinning, Permissions)
     score: int | None = None           # numeric score 0–100 (Pro: Trust Score, CVSS)
     detail: list[str] | None = None    # structured context (Pro: flow path, dep chain, score)
+    id: str = field(default="", init=True)
+
+    def __post_init__(self) -> None:
+        if not self.id:
+            raw = f"{self.rule}:{self.line}:{self.message}"
+            self.id = hashlib.sha256(raw.encode()).hexdigest()[:12]

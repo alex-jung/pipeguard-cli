@@ -13,6 +13,7 @@ from pipeguard.const import (
     VALID_PERMISSION_LEVELS,
 )
 from pipeguard.dataclasses import Finding, Severity
+from pipeguard.scanner.base import BaseScanner
 
 
 def check_permissions(workflow_path: str) -> list[Finding]:
@@ -206,3 +207,8 @@ def _check_id_token_write(
 
 def _find_line(lines: list[str], keyword: str) -> int:
     return next((i + 1 for i, line in enumerate(lines) if keyword in line), 0)
+
+
+class PermissionsScanner(BaseScanner):
+    def check(self, workflow_path: str) -> list[Finding]:
+        return check_permissions(workflow_path)

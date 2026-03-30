@@ -2,7 +2,7 @@
 
 import pytest
 
-from pipeguard.config import PipeGuardConfig
+from pipeguard.config import SupplyChainScannerConfig, load_config
 from pipeguard.scanner.github_actions.supply_chain import check_supply_chain
 
 TRUSTED = [
@@ -80,47 +80,45 @@ def _workflow(tmp_path, uses: str):
 
 def test_config_trusted_publisher_suppresses_warning(tmp_path):
     wf = _workflow(tmp_path, "my-company/deploy-action@v2")
-    config = PipeGuardConfig(trusted_publishers=["my-company/"])
+    config = SupplyChainScannerConfig(trusted_publishers=["my-company/"])
     assert not any(f.rule == "supply-chain" for f in check_supply_chain(wf, config))
 
 
 def test_config_trusted_publisher_without_slash_normalised(tmp_path):
     wf = _workflow(tmp_path, "my-company/deploy-action@v2")
-    # load_config normalises "my-company" → "my-company/"
-    config = PipeGuardConfig(trusted_publishers=["my-company/"])
+    config = SupplyChainScannerConfig(trusted_publishers=["my-company/"])
     assert not any(f.rule == "supply-chain" for f in check_supply_chain(wf, config))
 
 
 def test_config_trusted_action_suppresses_warning(tmp_path):
     wf = _workflow(tmp_path, "some-random-org/cool-action@v1")
-    config = PipeGuardConfig(trusted_actions=["some-random-org/cool-action"])
+    config = SupplyChainScannerConfig(trusted_actions=["some-random-org/cool-action"])
     assert not any(f.rule == "supply-chain" for f in check_supply_chain(wf, config))
 
 
 def test_config_does_not_suppress_other_actions(tmp_path):
     wf = _workflow(tmp_path, "other-org/other-action@v1")
-    config = PipeGuardConfig(trusted_publishers=["my-company/"])
+    config = SupplyChainScannerConfig(trusted_publishers=["my-company/"])
     assert any(f.rule == "supply-chain" for f in check_supply_chain(wf, config))
 
 
 def test_load_config_from_file(tmp_path):
-    from pipeguard.config import load_config
-
     cfg_file = tmp_path / ".pipeguard.yml"
     cfg_file.write_text(
-        "trusted_publishers:\n"
-        "  - my-org\n"
-        "trusted_actions:\n"
-        "  - other-org/specific-action\n"
+        "scanners:\n"
+        "  supply-chain:\n"
+        "    trusted_publishers:\n"
+        "      - my-org\n"
+        "    trusted_actions:\n"
+        "      - other-org/specific-action\n"
     )
     config = load_config(tmp_path)
-    assert "my-org/" in config.trusted_publishers
-    assert "other-org/specific-action" in config.trusted_actions
+    sc = config.scanners.get("supply-chain")
+    assert isinstance(sc, SupplyChainScannerConfig)
+    assert "my-org/" in sc.trusted_publishers
+    assert "other-org/specific-action" in sc.trusted_actions
 
 
 def test_load_config_missing_file(tmp_path):
-    from pipeguard.config import load_config
-
     config = load_config(tmp_path)
-    assert config.trusted_publishers == []
-    assert config.trusted_actions == []
+    assert config.scanners == {}
