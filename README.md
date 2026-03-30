@@ -112,6 +112,10 @@ pipeguard scan --format sarif
 
 # Use a custom config file
 pipeguard scan --config path/to/.pipeguard.yml
+
+# Run only specific scanner(s) — ignores config file, always runs locally
+pipeguard scan --scanner sha-pinning
+pipeguard scan --scanner sha-pinning --scanner cve
 ```
 
 When scanning a directory, pipeguard prints a per-file header and a summary at the end:
@@ -150,6 +154,7 @@ Info-level findings (action inventory) do not affect the exit code.
 | `--fix` | Apply auto-fixes via Pro API (requires license key) |
 | `--config PATH` | Path to a `.pipeguard.yml` config file |
 | `--verbose` / `-v` | Show per-scanner progress and Pro API response |
+| `--scanner NAME` | Run only this scanner. Can be repeated. Respects config file settings (e.g. `trusted_publishers`, `min_cvss`) but overrides `skip`. Bypasses Pro API — always runs locally. Valid names: `sha-pinning`, `supply-chain`, `cve`, `permissions`, `secrets-flow`, `pull-request-target`, `actionlint`, `action-inventory` |
 
 ---
 
