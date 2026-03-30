@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from click.testing import CliRunner
 
 from pipeguard.cli import main
 from pipeguard.dataclasses import Finding, Severity
+
+from .conftest import parse_json_output
 
 FIXTURES = Path("tests/fixtures")
 
@@ -24,8 +25,8 @@ class TestFindingIdDeterminism:
         result1 = runner.invoke(main, ["scan", str(wf), "--format", "json"])
         result2 = runner.invoke(main, ["scan", str(wf), "--format", "json"])
 
-        findings1 = {f["id"] for f in json.loads(result1.output)}
-        findings2 = {f["id"] for f in json.loads(result2.output)}
+        findings1 = {f["id"] for f in parse_json_output(result1.output)}
+        findings2 = {f["id"] for f in parse_json_output(result2.output)}
         assert findings1 == findings2
 
     def test_id_changes_when_line_changes(self, tmp_path):
@@ -37,7 +38,7 @@ class TestFindingIdDeterminism:
         )
         runner = CliRunner()
         result1 = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        ids_before = {f["id"] for f in json.loads(result1.output)}
+        ids_before = {f["id"] for f in parse_json_output(result1.output)}
 
         # Prepend a comment — shifts all line numbers
         wf.write_text(
@@ -46,7 +47,7 @@ class TestFindingIdDeterminism:
             "      - uses: actions/checkout@v3\n"
         )
         result2 = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        ids_after = {f["id"] for f in json.loads(result2.output)}
+        ids_after = {f["id"] for f in parse_json_output(result2.output)}
 
         assert ids_before != ids_after
 
@@ -82,21 +83,11 @@ class TestFindingIdDeterminism:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = json.loads(result.output)
+        findings = parse_json_output(result.output)
         assert all(f["id"] for f in findings)
 
 
 class TestOptionA:
-    def _parse_json_output(self, output: str) -> list[dict]:
-        """Extract the JSON array from CLI output (strips any banner lines)."""
-        # Find the first line that is the start of a JSON array (bare '[')
-        lines = output.splitlines()
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped == "[" or stripped.startswith("[{"):
-                return json.loads("\n".join(lines[i:]))
-        return json.loads(output)
-
     def test_pro_api_replaces_free_scanners(self, tmp_path, monkeypatch):
         """When Pro key present, only Pro API findings returned (no free scanner runs)."""
         wf = tmp_path / "wf.yml"
@@ -115,7 +106,7 @@ class TestOptionA:
 
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = self._parse_json_output(result.output)
+        findings = parse_json_output(result.output)
 
         rules = {f["rule"] for f in findings}
         assert "pro-rule" in rules
@@ -135,7 +126,7 @@ class TestOptionA:
 
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = self._parse_json_output(result.output)
+        findings = parse_json_output(result.output)
 
         rules = {f["rule"] for f in findings}
         assert "sha-pinning" in rules

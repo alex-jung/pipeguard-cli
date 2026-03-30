@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from click.testing import CliRunner
 
 from pipeguard.cli import main
 
-FIXTURES = Path("tests/fixtures")
+from .conftest import parse_json_output, parse_sarif_output
+
 E2E = Path("tests/fixtures/e2e")
 
 
@@ -23,7 +23,7 @@ class TestJsonOutput:
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
         assert result.exit_code == 1
-        data = json.loads(result.output)
+        data = parse_json_output(result.output)
         assert isinstance(data, list)
 
     def test_json_finding_has_required_fields(self, tmp_path):
@@ -34,7 +34,7 @@ class TestJsonOutput:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = json.loads(result.output)
+        findings = parse_json_output(result.output)
         assert len(findings) > 0
         f = findings[0]
         assert "id" in f
@@ -53,7 +53,7 @@ class TestJsonOutput:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = json.loads(result.output)
+        findings = parse_json_output(result.output)
         for f in findings:
             assert len(f["id"]) == 12
             assert all(c in "0123456789abcdef" for c in f["id"])
@@ -62,7 +62,7 @@ class TestJsonOutput:
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(E2E / "all_clean.yml"), "--format", "json"])
         assert result.exit_code == 0
-        data = json.loads(result.output)
+        data = parse_json_output(result.output)
         assert not any(f["severity"] in ("error", "warning") for f in data)
 
     def test_json_severity_values(self, tmp_path):
@@ -73,7 +73,7 @@ class TestJsonOutput:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "json"])
-        findings = json.loads(result.output)
+        findings = parse_json_output(result.output)
         for f in findings:
             assert f["severity"] in ("error", "warning", "info")
 
@@ -88,7 +88,7 @@ class TestSarifOutput:
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "sarif"])
         assert result.exit_code == 1
-        sarif = json.loads(result.output)
+        sarif = parse_sarif_output(result.output)
         assert sarif["version"] == "2.1.0"
         assert "runs" in sarif
         assert len(sarif["runs"]) == 1
@@ -101,7 +101,7 @@ class TestSarifOutput:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "sarif"])
-        sarif = json.loads(result.output)
+        sarif = parse_sarif_output(result.output)
         driver = sarif["runs"][0]["tool"]["driver"]
         assert driver["name"] == "pipeguard"
         assert "rules" in driver
@@ -114,7 +114,7 @@ class TestSarifOutput:
         )
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(wf), "--format", "sarif"])
-        sarif = json.loads(result.output)
+        sarif = parse_sarif_output(result.output)
         results = sarif["runs"][0]["results"]
         assert len(results) > 0
         r = results[0]
@@ -130,7 +130,7 @@ class TestSarifOutput:
     def test_sarif_no_warnings_or_errors_on_clean_workflow(self):
         runner = CliRunner()
         result = runner.invoke(main, ["scan", str(E2E / "all_clean.yml"), "--format", "sarif"])
-        sarif = json.loads(result.output)
+        sarif = parse_sarif_output(result.output)
         results = sarif["runs"][0]["results"]
         # action-inventory emits INFO; no errors or warnings on a clean workflow
         assert not any(r["level"] == "error" for r in results)
