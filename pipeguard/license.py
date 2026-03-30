@@ -44,11 +44,11 @@ def _serialize_config(config: PipeGuardConfig | None) -> dict[str, object]:
     for name, sc in config.scanners.items():
         entry: dict[str, object] = {"skip": sc.skip}
         if hasattr(sc, "trusted_publishers"):
-            entry["trusted_publishers"] = sc.trusted_publishers  # type: ignore[attr-defined]
+            entry["trusted_publishers"] = sc.trusted_publishers
         if hasattr(sc, "trusted_actions"):
-            entry["trusted_actions"] = sc.trusted_actions  # type: ignore[attr-defined]
+            entry["trusted_actions"] = sc.trusted_actions
         if hasattr(sc, "min_cvss"):
-            entry["min_cvss"] = sc.min_cvss  # type: ignore[attr-defined]
+            entry["min_cvss"] = sc.min_cvss
         scanners[name] = entry
     return {"scanners": scanners}
 
