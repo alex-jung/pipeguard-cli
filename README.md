@@ -22,21 +22,6 @@ Pre-commit security scanner for GitHub Actions workflows. Catches supply-chain r
 
 ---
 
-## Demo
-
-![Demo](assets/demo.gif)
-
-The recording shows a scan of a real workflow file with multiple security issues.
-PipeGuard detects them all in under a second — no API key, no network call, fully offline:
-
-- No top-level `permissions:` block — GitHub grants write access to all scopes by default
-- `tj-actions/changed-files@v35` and `reviewdog/action-setup@v1` match known CVEs in the bundled database
-- All actions are pinned to tags instead of commit SHAs — a supply-chain risk
-- `echo ${{ secrets.DEPLOY_TOKEN }}` leaks a secret value to the workflow log
-- `8398a7/action-slack` is a third-party action from an unverified publisher
-
----
-
 ## PipeGuard vs. the alternatives
 
 | Feature | PipeGuard | actionlint | StepSecurity | act |
