@@ -133,5 +133,14 @@
       "all_tags"
     ],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2026-32737"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2024-58354",
+    "description": "cal.com (calcom repository, later renamed cal.diy) is affected by a repository takeover vulnerability in its GitHub Actions workflows. The workflow pr.yml uses the pull_request_target trigger with the repository's default write permissions and passes them down to check-types.yml. check-types.yml then performs a 'dangerous' checkout of the attacker-submitted pull request code (via the dangerous-git-checkout action) and subsequently executes it (through yarn install and package.json scripts). An attacker can open a pull request whose code runs arbitrary commands with the repository's write-scoped GITHUB_TOKEN, allowing them to push commits, merge or mutate pull requests, add or delete comments, and delete or force-push branches, thereby compromising the repository. The main branch is affected; no patched version is available.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2024-58354"
   }
 ]
