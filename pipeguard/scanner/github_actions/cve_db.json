@@ -142,5 +142,14 @@
       "all_tags"
     ],
     "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2024-58354"
+  },
+  {
+    "action": "PENDING_REVIEW",
+    "cve_id": "CVE-2026-67308",
+    "description": "Wazuh workflows before 44bf114 contain a shell injection vulnerability in GitHub Actions that allows attackers to execute arbitrary commands by submitting pull requests with crafted VERSION.json files. Attackers can inject shell metacharacters into environment variables that are directly interpolated into run steps, enabling command execution and exfiltration of secrets including GITHUB_TOKEN and AWS credentials on self-hosted runners.",
+    "affected_refs": [
+      "all_tags"
+    ],
+    "advisory_url": "https://www.cve.org/CVERecord?id=CVE-2026-67308"
   }
 ]
