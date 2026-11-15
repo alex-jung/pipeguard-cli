@@ -178,7 +178,7 @@ PipeGuard ships with a built-in offline CVE database — no API key, no network 
 
 <!-- cve-updated-start -->
 > [!NOTE]
-> Last updated: 2026-11-14
+> Last updated: 2026-11-15
 <!-- cve-updated-end -->
 
 <!-- cve-table-start -->
